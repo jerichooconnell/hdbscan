@@ -17,13 +17,11 @@
     :target: https://hdbscan.readthedocs.org
     :alt: Docs
 
-
-
-* Now a part of `scikit-learn-contrib <https://github.com/scikit-learn-contrib/hdbscan>`_ *
-
 =======
 HDBSCAN
 =======
+
+Now a part of `scikit-learn-contrib <https://github.com/scikit-learn-contrib/hdbscan>`_ 
 
 HDBSCAN - Hierarchical Density-Based Spatial Clustering of Applications
 with Noise. Performs DBSCAN over varying epsilon values and integrates 
