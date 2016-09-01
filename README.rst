@@ -17,7 +17,9 @@
     :target: https://hdbscan.readthedocs.org
     :alt: Docs
 
-Now a part of `scikit-learn-contrib <https://github.com/scikit-learn-contrib/hdbscan>`_
+
+
+*Now a part of `scikit-learn-contrib <https://github.com/scikit-learn-contrib/hdbscan>`_*
 
 =======
 HDBSCAN
