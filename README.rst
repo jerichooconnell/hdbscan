@@ -5,13 +5,13 @@
     :target: https://anaconda.org/conda-forge/hdbscan
     :alt: Conda-forge Version
 .. image:: https://img.shields.io/pypi/l/hdbscan.svg
-    :target: https://github.com/lmcinnes/hdbscan/blob/master/LICENSE
+    :target: https://github.com/scikit-learn-contrib/hdbscan/blob/master/LICENSE
     :alt: License
-.. image:: https://travis-ci.org/lmcinnes/hdbscan.svg
-    :target: https://travis-ci.org/lmcinnes/hdbscan
+.. image:: https://travis-ci.org/scikit-learn-contrib/hdbscan.svg
+    :target: https://travis-ci.org/scikit-learn-contrib/hdbscan
     :alt: Travis Build Status
-.. image:: https://coveralls.io/repos/github/lmcinnes/hdbscan/badge.svg?branch=master
-    :target: https://coveralls.io/github/lmcinnes/hdbscan?branch=master
+.. image:: https://coveralls.io/repos/github/scikit-learn-contrib/hdbscan/badge.svg?branch=master
+    :target: https://coveralls.io/github/scikit-learn-contrib/hdbscan?branch=master
     :alt: Test Coverage
 .. image:: https://readthedocs.org/projects/hdbscan/badge/?version=latest
     :target: https://hdbscan.readthedocs.org
