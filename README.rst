@@ -4,6 +4,9 @@
 .. image:: https://anaconda.org/conda-forge/hdbscan/badges/version.svg
     :target: https://anaconda.org/conda-forge/hdbscan
     :alt: Conda-forge Version
+.. image:: https://anaconda.org/conda-forge/hdbscan/badges/downloads.svg
+    :target: https://anaconda.org/conda-forge/hdbscan
+    :alt: Conda-forge downloads
 .. image:: https://img.shields.io/pypi/l/hdbscan.svg
     :target: https://github.com/scikit-learn-contrib/hdbscan/blob/master/LICENSE
     :alt: License
@@ -16,6 +19,9 @@
 .. image:: https://readthedocs.org/projects/hdbscan/badge/?version=latest
     :target: https://hdbscan.readthedocs.org
     :alt: Docs
+.. image:: http://joss.theoj.org/papers/10.21105/joss.00205/status.svg
+    :target: http://joss.theoj.org/papers/10.21105/joss.00205
+    :alt: JOSS article
 
 =======
 HDBSCAN
@@ -62,6 +68,9 @@ giving a distance matrix between samples.
 .. code:: python
 
     import hdbscan
+    from sklearn.datasets import make_blobs
+    
+    data, _ = make_blobs(1000)
     
     clusterer = hdbscan.HDBSCAN(min_cluster_size=10)
     cluster_labels = clusterer.fit_predict(data)
@@ -133,6 +142,9 @@ Example usage:
 .. code:: python
 
     import hdbscan
+    from sklearn.datasets import make_blobs
+    
+    data = make_blobs(1000)
     
     clusterer = hdbscan.RobustSingleLinkage(cut=0.125, k=7)
     cluster_labels = clusterer.fit_predict(data)
@@ -156,7 +168,7 @@ Easiest install, if you have Anaconda (thanks to conda-forge which is awesome!):
 
     conda install -c conda-forge hdbscan
 
-PyPI install, presuming you have sklearn and all its requirements installed:
+PyPI install, presuming you have sklearn and all its requirements (numpy and scipy) installed:
 
 .. code:: bash
 
@@ -168,6 +180,7 @@ the dependencies manually using anaconda followed by pulling hdbscan from pip:
 .. code:: bash
 
     conda install cython
+    conda install numpy scipy
     conda install scikit-learn
     pip install hdbscan
 
@@ -190,13 +203,44 @@ or
 
 .. code:: bash
 
-    conda install scikit-learn cython
+    conda install scikit-learn cython 
 
 Install the package
 
 .. code:: bash
 
     python setup.py install
+    
+--------------
+Python Version
+--------------
+
+The hdbscan library supports both Python 2 and Python 3. However we recommend Python 3 as the better option if it is available to you.
+    
+----------------
+Help and Support
+----------------
+
+For simple issues you can consult the `FAQ <https://hdbscan.readthedocs.io/en/latest/faq.html>`_ in the documentation.
+If your issue is not suitably resolved there, please check the `issues <https://github.com/scikit-learn-contrib/hdbscan/issues>`_ on github. Finally, if no solution is available there feel free to `open an issue <https://github.com/scikit-learn-contrib/hdbscan/issues/new>`_ ; the authors will attempt to respond in a reasonably timely fashion.
+
+------------
+Contributing
+------------
+
+We welcome contributions in any form! Assistance with documentation, particularly expanding tutorials,
+is always welcome. To contribute please `fork the project <https://github.com/scikit-learn-contrib/hdbscan/issues#fork-destination-box>`_ make your changes and submit a pull request. We will do our best to work through any issues with
+you and get your code merged into the main branch.
+
+------
+Citing
+------
+
+If you have used this codebase in a scientific publication and wish to cite it, please use the `Journal of Open Source Software article <http://joss.theoj.org/papers/10.21105/joss.00205>`_.
+
+    L. McInnes, J. Healy, S. Astels, *hdbscan: Hierarchical density based clustering*
+    In: Journal of Open Source Software, The Open Journal, volume 2, number 11.
+    2017
 
 ---------
 Licensing

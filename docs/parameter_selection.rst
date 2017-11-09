@@ -5,20 +5,22 @@ Parameter Selection for HDBSCAN\*
 While the HDBSCAN class has a large number of parameters that can be set
 on initialization, in practice there are a very small number of
 parameters that have significant practical effect on clustering. We will
-first consider those major parameters, and consider how one may go about
-choosing them effectively. With that out of the way we'll look at the
-remaining parameters and see what their effects are -- many just effect
-performance for various different use cases.
+consider those major parameters, and consider how one may go about
+choosing them effectively.
+
+.. _min_cluster_size_label:
 
 Selecting ``min_cluster_size``
 ------------------------------
 
 The primary parameter to effect the resulting clustering is
 ``min_cluster_size``. Ideally this is a relatively intuitive parameter
-to select -- set it to the smallest size grouping that you sih to
+to select -- set it to the smallest size grouping that you wish to
 consider a cluster. It can have slightly non-obvious effects however.
 Let's consider the digits dataset from sklearn. We can project the data
 into two dimensions to visualize it via t-SNE.
+
+.. code:: python
 
     digits = datasets.load_digits()
     data = digits.data
@@ -29,7 +31,7 @@ into two dimensions to visualize it via t-SNE.
 .. image:: images/parameter_selection_3_1.png
 
 
-If we cluster this data in the full 64 dimensional space with hdbscan we
+If we cluster this data in the full 64 dimensional space with HDBSCAN\* we
 can see some effects from varying the ``min_cluster_size``.
 
 We start with a ``min_cluster_size`` of 15.
@@ -52,7 +54,7 @@ We start with a ``min_cluster_size`` of 15.
 Increasing the ``min_cluster_size`` to 30 reduces the number of
 clusters, merging some together. This is a result of HDBSCAN\*
 reoptimizing which flat clustering provides greater stability under a
-slightly different notion of what constitutes cluster.
+slightly different notion of what constitutes a cluster.
 
 .. code:: python
 
@@ -113,9 +115,11 @@ pruned out. Thus ``min_cluster_size`` does behave more closely to our
 intuitions, but only if we fix ``min_samples``. If you wish to explore
 different ``min_cluster_size`` settings with a fixed ``min_samples``
 value, especially for larger dataset sizes, you can cache the hard
-computation, and recompute onlythe relatively cheap flat cluster
-extraction using the ``memory`` parameter, which makes use of ``joblib``
-[link].
+computation, and recompute only the relatively cheap flat cluster
+extraction using the ``memory`` parameter, which makes use of
+`joblib <https://pythonhosted.org/joblib/>`_
+
+.. _min_samples_label:
 
 Selecting ``min_samples``
 -----------------------
@@ -156,15 +160,17 @@ leaving the ``min_cluster_size`` at 60, but reducing ``min_samples`` to
 
 Now most points are clustered, and there are much fewer noise points.
 Steadily increasing ``min_samples`` will, as we saw in the examples
-above, make the clustering progressivly more conservative, culiminating
+above, make the clustering progressively more conservative, culminating
 in the example above where ``min_samples`` was set to 60 and we had only
 two clusters with most points declared as noise.
+
+.. _alpha_label:
 
 Selecting ``alpha``
 -----------------
 
 A further parameter that effects the resulting clustering is ``alpha``.
-In practice it is best not to mess with this paramter -- ultimately it
+In practice it is best not to mess with this parameter -- ultimately it
 is part of the ``RobustSingleLinkage`` code, but flows naturally into
 HDBSCAN\*. If, for some reason, ``min_samples`` is not providing you
 what you need, stop, rethink things, and try again with ``min_samples``.
@@ -189,3 +195,41 @@ as we can see by setting ``alpha`` to 1.3.
 .. image:: images/parameter_selection_18_1.png
 
 
+.. _leaf_clustering_label:
+
+Leaf clustering
+---------------
+
+HDBSCAN supports an extra parameter ``cluster_selection_method`` to determine
+how it selects flat clusters from the cluster tree hierarchy. The default
+method is ``'eom'`` for Excess of Mass, the algorithm described in
+:doc:`how_hdbscan_works`. This is not always the most desireable approach to
+cluster selection. If you are more interested in having small homogeneous
+clusters then you may find Excess of Mass has a tendency to pick one or two
+large clusters and then a number of small extra clusters. In this situation
+you may be tempted to recluster just the data in the single large cluster.
+Instead, a better option is to select ``'leaf'`` as a cluster selection
+method. This will select leaf nodes from the tree, producing many small
+homogeneous clusters. Note that you can still get variable density clusters
+via this method, and it is also still possible to get large clusters, but
+there will be a tendency to produce a more fine grained clustering than
+Excess of Mass can provide.
+
+.. _single_cluster_label:
+
+Allowing a single cluster
+-------------------------
+
+In contrast, if you are getting lots of small clusters, but believe there
+should be some larger scale structure (or the possibility of no structure),
+consider the ``allow_single_cluster`` option. By default HDBSCAN\* does not
+allow a single cluster to be returned -- this is due to how the Excess of
+Mass algorithm works, and a bias towards the root cluster that may occur. You
+can override this behaviour and see what clustering would look like if you
+allow a single cluster to be returned. This can alleviate issue caused by
+there only being a single large cluster, or by data that is essentially just
+noise. For example, the image below shows the effects of setting
+``allow_single_cluster=True`` in the bottom row, compared to the top row
+which used default settings.
+
+.. image:: images/allow_single_cluster.png

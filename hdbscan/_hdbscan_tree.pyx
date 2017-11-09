@@ -1,4 +1,6 @@
-#cython: boundscheck=False, nonecheck=False, initializedcheck=False
+# cython: boundscheck=False
+# cython: nonecheck=False
+# cython: initializedcheck=False
 # Tree handling (condensing, finding stable clusters) for hdbscan
 # Authors: Leland McInnes
 # License: 3-clause BSD
@@ -8,8 +10,9 @@ cimport numpy as np
 
 cdef np.double_t INFTY = np.inf
 
-cdef list bfs_from_hierarchy(np.ndarray[np.double_t, ndim=2] hierarchy, np.intp_t bfs_root):
 
+cdef list bfs_from_hierarchy(np.ndarray[np.double_t, ndim=2] hierarchy,
+                             np.intp_t bfs_root):
     """
     Perform a breadth first search on a tree in scipy hclust format.
     """
@@ -29,14 +32,37 @@ cdef list bfs_from_hierarchy(np.ndarray[np.double_t, ndim=2] hierarchy, np.intp_
     while to_process:
         result.extend(to_process)
         to_process = [x - num_points for x in
-                          to_process if x >= num_points]
+                      to_process if x >= num_points]
         if to_process:
-            to_process = hierarchy[to_process,:2].flatten().astype(np.intp).tolist()
+            to_process = hierarchy[to_process,
+                                   :2].flatten().astype(np.intp).tolist()
 
     return result
 
+
 cpdef np.ndarray condense_tree(np.ndarray[np.double_t, ndim=2] hierarchy,
                                np.intp_t min_cluster_size=10):
+    """Condense a tree according to a minimum cluster size. This is akin
+    to the runt pruning procedure of Stuetzle. The result is a much simpler
+    tree that is easier to visualize. We include extra information on the 
+    lambda value at which individual points depart clusters for later
+    analysis and computation.
+    
+    Parameters
+    ----------
+    hierarchy : ndarray (n_samples, 4)
+        A single linkage hierarchy in scipy.cluster.hierarchy format.
+        
+    min_cluster_size : int, optional (default 10)
+        The minimum size of clusters to consider. Smaller "runt" 
+        clusters are pruned from the tree.
+        
+    Returns
+    -------
+    condensed_tree : numpy recarray
+        Effectively an edgelist with a parent, child, lambda_val
+        and child_size in each row providing a tree structure.
+    """
 
     cdef np.intp_t root
     cdef np.intp_t num_points
@@ -92,43 +118,48 @@ cpdef np.ndarray condense_tree(np.ndarray[np.double_t, ndim=2] hierarchy,
         if left_count >= min_cluster_size and right_count >= min_cluster_size:
             relabel[left] = next_label
             next_label += 1
-            result_list.append((relabel[node], relabel[left], lambda_value, left_count))
+            result_list.append((relabel[node], relabel[left], lambda_value,
+                                left_count))
 
             relabel[right] = next_label
             next_label += 1
-            result_list.append((relabel[node], relabel[right], lambda_value, right_count))
+            result_list.append((relabel[node], relabel[right], lambda_value,
+                                right_count))
 
         elif left_count < min_cluster_size and right_count < min_cluster_size:
             for sub_node in bfs_from_hierarchy(hierarchy, left):
                 if sub_node < num_points:
-                    result_list.append((relabel[node], sub_node, lambda_value, 1))
+                    result_list.append((relabel[node], sub_node,
+                                        lambda_value, 1))
                 ignore[sub_node] = True
 
             for sub_node in bfs_from_hierarchy(hierarchy, right):
                 if sub_node < num_points:
-                    result_list.append((relabel[node], sub_node, lambda_value, 1))
+                    result_list.append((relabel[node], sub_node,
+                                        lambda_value, 1))
                 ignore[sub_node] = True
 
         elif left_count < min_cluster_size:
             relabel[right] = relabel[node]
             for sub_node in bfs_from_hierarchy(hierarchy, left):
                 if sub_node < num_points:
-                    result_list.append((relabel[node], sub_node, lambda_value, 1))
+                    result_list.append((relabel[node], sub_node,
+                                        lambda_value, 1))
                 ignore[sub_node] = True
 
         else:
             relabel[left] = relabel[node]
             for sub_node in bfs_from_hierarchy(hierarchy, right):
                 if sub_node < num_points:
-                    result_list.append((relabel[node], sub_node, lambda_value, 1))
+                    result_list.append((relabel[node], sub_node,
+                                        lambda_value, 1))
                 ignore[sub_node] = True
 
-    return np.array(result_list, dtype=[
-                                        ('parent', np.intp),
+    return np.array(result_list, dtype=[('parent', np.intp),
                                         ('child', np.intp),
                                         ('lambda_val', float),
-                                        ('child_size', np.intp)
-                                       ])
+                                        ('child_size', np.intp)])
+
 
 cpdef dict compute_stability(np.ndarray condensed_tree):
 
@@ -154,12 +185,14 @@ cpdef dict compute_stability(np.ndarray condensed_tree):
 
     cdef np.intp_t largest_child = condensed_tree['child'].max()
     cdef np.intp_t smallest_cluster = condensed_tree['parent'].min()
-    cdef np.intp_t num_clusters = condensed_tree['parent'].max() - smallest_cluster + 1
+    cdef np.intp_t num_clusters = (condensed_tree['parent'].max() -
+                                   smallest_cluster + 1)
 
     if largest_child < smallest_cluster:
         largest_child = smallest_cluster
 
-    sorted_child_data = np.sort(condensed_tree[['child', 'lambda_val']], axis=0)
+    sorted_child_data = np.sort(condensed_tree[['child', 'lambda_val']],
+                                axis=0)
     births_arr = np.nan * np.ones(largest_child + 1, dtype=np.double)
     births = (<np.double_t *> births_arr.data)
     sorted_children = sorted_child_data['child'].copy()
@@ -201,9 +234,12 @@ cpdef dict compute_stability(np.ndarray condensed_tree):
 
         result_arr[result_index] += (lambda_ - births[parent]) * child_size
 
-    result_pre_dict = np.vstack((np.arange(smallest_cluster, condensed_tree['parent'].max() + 1), result_arr)).T
+    result_pre_dict = np.vstack((np.arange(smallest_cluster,
+                                           condensed_tree['parent'].max() + 1),
+                                 result_arr)).T
 
     return dict(result_pre_dict)
+
 
 cdef list bfs_from_cluster_tree(np.ndarray tree, np.intp_t bfs_root):
 
@@ -218,6 +254,7 @@ cdef list bfs_from_cluster_tree(np.ndarray tree, np.intp_t bfs_root):
         to_process = tree['child'][np.in1d(tree['parent'], to_process)]
 
     return result
+
 
 cdef max_lambdas(np.ndarray tree):
 
@@ -261,16 +298,18 @@ cdef max_lambdas(np.ndarray tree):
 
     return deaths_arr
 
+
 cdef class TreeUnionFind (object):
 
     cdef np.ndarray _data_arr
-    cdef np.intp_t[:,::1] _data
+    cdef np.intp_t[:, ::1] _data
     cdef np.ndarray is_component
 
     def __init__(self, size):
         self._data_arr = np.zeros((size, 2), dtype=np.intp)
         self._data_arr.T[0] = np.arange(size)
-        self._data = (<np.intp_t[:size, :2:1]> (<np.intp_t *> self._data_arr.data))
+        self._data = (<np.intp_t[:size, :2:1]> (
+            <np.intp_t *> self._data_arr.data))
         self.is_component = np.ones(size, dtype=np.bool)
 
     cdef union_(self, np.intp_t x, np.intp_t y):
@@ -296,9 +335,34 @@ cdef class TreeUnionFind (object):
     cdef np.ndarray[np.intp_t, ndim=1] components(self):
         return self.is_component.nonzero()[0]
 
-cpdef np.ndarray[np.intp_t, ndim=1] labelling_at_cut(np.ndarray linkage,
-                                                      np.double_t cut,
-                                                      np.intp_t min_cluster_size):
+
+cpdef np.ndarray[np.intp_t, ndim=1] labelling_at_cut(
+        np.ndarray linkage,
+        np.double_t cut,
+        np.intp_t min_cluster_size):
+    """Given a single linkage tree and a cut value, return the
+    vector of cluster labels at that cut value. This is useful 
+    for Robust Single Linkage, and extracting DBSCAN results
+    from a single HDBSCAN run.
+    
+    Parameters
+    ----------
+    linkage : ndarray (n_samples, 4)
+        The single linkage tree in scipy.cluster.hierarchy format.
+        
+    cut : double
+        The cut value at which to find clusters.
+        
+    min_cluster_size : int
+        The minimum cluster size; clusters below this size at
+        the cut will be considered noise.
+        
+    Returns
+    -------
+    labels : ndarray (n_samples,)
+        The cluster labels for each point in the data set;
+        a label of -1 denotes a noise assignment.
+    """
 
     cdef np.intp_t root
     cdef np.intp_t num_points
@@ -310,7 +374,6 @@ cpdef np.ndarray[np.intp_t, ndim=1] labelling_at_cut(np.ndarray linkage,
     cdef np.intp_t n
     cdef np.intp_t cluster
     cdef np.intp_t cluster_id
-
 
     root = 2 * linkage.shape[0]
     num_points = root // 2 + 1
@@ -327,14 +390,13 @@ cpdef np.ndarray[np.intp_t, ndim=1] labelling_at_cut(np.ndarray linkage,
             union_find.union_(<np.intp_t> row[1], cluster)
         cluster += 1
 
-
     cluster_size = np.zeros(cluster, dtype=np.intp)
     for n in range(num_points):
         cluster = union_find.find(n)
         cluster_size[cluster] += 1
         result[n] = cluster
 
-    cluster_label_map = {-1:-1}
+    cluster_label_map = {-1: -1}
     cluster_label = 0
     unique_labels = np.unique(result_arr)
 
@@ -350,15 +412,19 @@ cpdef np.ndarray[np.intp_t, ndim=1] labelling_at_cut(np.ndarray linkage,
 
     return result_arr
 
-cdef np.ndarray[np.intp_t, ndim=1] do_labelling(np.ndarray tree,
-                                                set clusters,
-                                                dict cluster_label_map,
-                                                np.intp_t allow_single_cluster):
+
+cdef np.ndarray[np.intp_t, ndim=1] do_labelling(
+        np.ndarray tree,
+        set clusters,
+        dict cluster_label_map,
+        np.intp_t allow_single_cluster,
+        np.intp_t match_reference_implementation):
 
     cdef np.intp_t root_cluster
     cdef np.ndarray[np.intp_t, ndim=1] result_arr
     cdef np.ndarray[np.intp_t, ndim=1] parent_array
     cdef np.ndarray[np.intp_t, ndim=1] child_array
+    cdef np.ndarray[np.double_t, ndim=1] lambda_array
     cdef np.intp_t *result
     cdef TreeUnionFind union_find
     cdef np.intp_t parent
@@ -368,11 +434,11 @@ cdef np.ndarray[np.intp_t, ndim=1] do_labelling(np.ndarray tree,
 
     child_array = tree['child']
     parent_array = tree['parent']
+    lambda_array = tree['lambda_val']
 
     root_cluster = parent_array.min()
     result_arr = np.empty(root_cluster, dtype=np.intp)
     result = (<np.intp_t *> result_arr.data)
-
 
     union_find = TreeUnionFind(parent_array.max() + 1)
 
@@ -387,16 +453,25 @@ cdef np.ndarray[np.intp_t, ndim=1] do_labelling(np.ndarray tree,
         if cluster < root_cluster:
             result[n] = -1
         elif cluster == root_cluster:
-            if len(clusters) == 1 and \
+            if len(clusters) == 1 and allow_single_cluster and \
                 tree['lambda_val'][tree['child'] == n] >= \
                     tree['lambda_val'][tree['parent'] == cluster].max():
                 result[n] = cluster_label_map[cluster]
             else:
                 result[n] = -1
         else:
-            result[n] = cluster_label_map[cluster]
+            if match_reference_implementation:
+                point_lambda = lambda_array[child_array == n][0]
+                cluster_lambda = lambda_array[child_array == cluster][0]
+                if point_lambda > cluster_lambda:
+                    result[n] = cluster_label_map[cluster]
+                else:
+                    result[n] = -1
+            else:
+                result[n] = cluster_label_map[cluster]
 
     return result_arr
+
 
 cdef get_probabilities(np.ndarray tree, dict cluster_map, np.ndarray labels):
 
@@ -441,7 +516,21 @@ cdef get_probabilities(np.ndarray tree, dict cluster_map, np.ndarray labels):
 
     return result
 
+
 cpdef np.ndarray[np.double_t, ndim=1] outlier_scores(np.ndarray tree):
+    """Generate GLOSH outlier scores from a condensed tree.
+    
+    Parameters
+    ----------
+    tree : numpy recarray
+        The condensed tree to generate GLOSH outlier scores from
+        
+    Returns
+    -------
+    outlier_scores : ndarray (n_samples,)
+        Outlier scores for each sample point. The larger the score
+        the more outlying the point.
+    """
 
     cdef np.ndarray[np.double_t, ndim=1] result
     cdef np.ndarray[np.double_t, ndim=1] deaths
@@ -463,7 +552,7 @@ cpdef np.ndarray[np.double_t, ndim=1] outlier_scores(np.ndarray tree):
     result = np.zeros(root_cluster, dtype=np.double)
 
     topological_sort_order = np.argsort(parent_array)
-    #topologically_sorted_tree = tree[topological_sort_order]
+    # topologically_sorted_tree = tree[topological_sort_order]
 
     for n in topological_sort_order:
         cluster = child_array[n]
@@ -489,22 +578,74 @@ cpdef np.ndarray[np.double_t, ndim=1] outlier_scores(np.ndarray tree):
 
     return result
 
+
 cpdef np.ndarray get_stability_scores(np.ndarray labels, set clusters,
                                       dict stability, np.double_t max_lambda):
 
+    cdef np.intp_t cluster_size
+    cdef np.intp_t n
+
     result = np.empty(len(clusters), dtype=np.double)
-    for n, c in enumerate(clusters):
-        if np.isinf(max_lambda):
+    for n, c in enumerate(sorted(list(clusters))):
+        cluster_size = np.sum(labels == n)
+        if np.isinf(max_lambda) or max_lambda == 0.0 or cluster_size == 0:
             result[n] = 1.0
         else:
-            result[n] = stability[c] / (np.sum(labels == n) * max_lambda)
+            result[n] = stability[c] / (cluster_size * max_lambda)
 
     return result
 
-cpdef tuple get_clusters(np.ndarray tree, dict stability, allow_single_cluster=False):
-    """
-    The tree is assumed to have numeric node ids such that a reverse numeric
-    sort is equivalent to a topological sort.
+cpdef list recurse_leaf_dfs(np.ndarray cluster_tree, np.intp_t current_node):
+    children = cluster_tree[cluster_tree['parent'] == current_node]['child']
+    if len(children) == 0:
+        return [current_node,]
+    else:
+        return sum([recurse_leaf_dfs(cluster_tree, child) for child in children], [])
+
+
+cpdef list get_cluster_tree_leaves(np.ndarray cluster_tree):
+    root = cluster_tree['parent'].min()
+    return recurse_leaf_dfs(cluster_tree, root)
+
+cpdef tuple get_clusters(np.ndarray tree, dict stability,
+                         cluster_selection_method='eom',
+                         allow_single_cluster=False,
+                         match_reference_implementation=False):
+    """Given a tree and stability dict, produce the cluster labels 
+    (and probabilities) for a flat clustering based on the chosen
+    cluster selection method.
+    
+    Parameters
+    ----------
+    tree : numpy recarray
+        The condensed tree to extract flat clusters from
+        
+    stability : dict
+        A dictionary mapping cluster_ids to stability values
+        
+    cluster_selection_method : string, optional (default 'eom')
+        The method of selecting clusters. The default is the
+        Excess of Mass algorithm specified by 'eom'. The alternate
+        option is 'leaf'.
+        
+    allow_single_cluster : boolean, optional (default False)
+        Whether to allow a single cluster to be selected by the
+        Excess of Mass algorithm.
+        
+    match_reference_implementation : boolean, optional (default False)
+        Whether to match the reference implementation in how to handle
+        certain edge cases.
+        
+    Returns
+    -------
+    labels : ndarray (n_samples,)
+        An integer array of cluster labels, with -1 denoting noise.
+        
+    probabilities : ndarray (n_samples,)
+        The cluster membership strength of each sample.
+        
+    stabilities : ndarray (n_clusters,)
+        The cluster coherence strengths of each cluster.
     """
     cdef list node_list
     cdef np.ndarray cluster_tree
@@ -525,35 +666,45 @@ cpdef tuple get_clusters(np.ndarray tree, dict stability, allow_single_cluster=F
     if allow_single_cluster:
         node_list = sorted(stability.keys(), reverse=True)
     else:
-        node_list = sorted(stability.keys(), reverse=True)[:-1] # (exclude root)
+        node_list = sorted(stability.keys(), reverse=True)[:-1]
+        # (exclude root)
 
     cluster_tree = tree[tree['child_size'] > 1]
-    is_cluster = {cluster:True for cluster in node_list}
+    is_cluster = {cluster: True for cluster in node_list}
     num_points = np.max(tree[tree['child_size'] == 1]['child']) + 1
     max_lambda = np.max(tree['lambda_val'])
 
-    for node in node_list:
-        child_selection = (cluster_tree['parent'] == node)
-        subtree_stability = np.sum([stability[child] for 
-                                    child in cluster_tree['child'][child_selection]])
-        if subtree_stability > stability[node]:
-            is_cluster[node] = False
-            stability[node] = subtree_stability
-        else:
-            for sub_node in bfs_from_cluster_tree(cluster_tree, node):
-                if sub_node != node:
-                    is_cluster[sub_node] = False
+    if cluster_selection_method == 'eom':
+        for node in node_list:
+            child_selection = (cluster_tree['parent'] == node)
+            subtree_stability = np.sum([
+                stability[child] for
+                child in cluster_tree['child'][child_selection]])
+            if subtree_stability > stability[node]:
+                is_cluster[node] = False
+                stability[node] = subtree_stability
+            else:
+                for sub_node in bfs_from_cluster_tree(cluster_tree, node):
+                    if sub_node != node:
+                        is_cluster[sub_node] = False
+    elif cluster_selection_method == 'leaf':
+        leaves = set(get_cluster_tree_leaves(cluster_tree))
+        for c in is_cluster:
+            if c in leaves:
+                is_cluster[c] = True
+            else:
+                is_cluster[c] = False
+    else:
+        raise ValueError('Invalid Cluster Selection Method: %s\n'
+                         'Should be one of: "eom", "leaf"\n')
 
     clusters = set([c for c in is_cluster if is_cluster[c]])
-    cluster_map = {c:n for n, c in enumerate(clusters)}
-    reverse_cluster_map = {n:c for n, c in enumerate(clusters)}
+    cluster_map = {c: n for n, c in enumerate(sorted(list(clusters)))}
+    reverse_cluster_map = {n: c for c, n in cluster_map.items()}
 
-    labels = do_labelling(tree, clusters, cluster_map, allow_single_cluster)
+    labels = do_labelling(tree, clusters, cluster_map,
+                    allow_single_cluster, match_reference_implementation)
     probs = get_probabilities(tree, reverse_cluster_map, labels)
     stabilities = get_stability_scores(labels, clusters, stability, max_lambda)
 
     return (labels, probs, stabilities)
-    
-    
-    
-       
