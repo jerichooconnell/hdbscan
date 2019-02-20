@@ -4,7 +4,7 @@ Basic Usage of HDBSCAN\* for Clustering
 
 We have some data, and we want to cluster it. How exactly do we do that,
 and what do the results look like? If you are very familiar with sklearn
-and it's API, particularly for clustering, then you can probably skip
+and its API, particularly for clustering, then you can probably skip
 this tutorial -- ``hdbscan`` implements exactly this API, so you can use
 it just as you would any other sklearn clustering algorithm. If, on the
 other hand, you aren't that familiar with sklearn, fear not, and read
@@ -168,9 +168,9 @@ and stores the result in an attribute ``labels_``.
 
 So it is an array of integers. What are we to make of that? It is an
 array with an integer for each data sample. Samples that are in the same
-cluster get assigned the same number. The cluster labels are 0 up
-numbers. We can thus determine the number of clusters found by checking
-what the largest cluster label is.
+cluster get assigned the same number. The cluster labels start at 0 and count
+up. We can thus determine the number of clusters found by finding the largest
+cluster label.
 
 .. code:: python
 
@@ -280,7 +280,17 @@ distance, etc. Again, this is all fine as ``hdbscan`` supports a special
 metric called ``precomputed``. If you create the clusterer with the
 metric set to ``precomputed`` then the clusterer will assume that,
 rather than being handed a vector of points in a vector space, it is
-recieving an all pairs distance matrix.
+recieving an all pairs distance matrix. Missing distances can be
+indicated by ``numpy.inf``, which leads HDBSCAN to ignore these pairwise
+relationships as long as there exists a path between two points that
+contains defined distances (i.e. if there are too many distances
+missing, the clustering is going to fail).
+
+NOTE: The input vector _must_ contain numerical data. If you have a 
+distance matrix for non-numerical vectors, you will need to map your
+input vectors to numerical vectors. (e.g use map ['A', 'G', 'C', 'T']->
+[ 1, 2, 3, 4] to replace input vector ['A', 'A', 'A', 'C', 'G'] with
+[ 1, 1, 1, 3, 2])
 
 .. code:: python
 

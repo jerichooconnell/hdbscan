@@ -22,6 +22,9 @@
 .. image:: http://joss.theoj.org/papers/10.21105/joss.00205/status.svg
     :target: http://joss.theoj.org/papers/10.21105/joss.00205
     :alt: JOSS article
+.. image:: https://mybinder.org/badge.svg 
+    :target: https://mybinder.org/v2/gh/scikit-learn-contrib/hdbscan
+    :alt: Launch example notebooks in Binder
 
 =======
 HDBSCAN
@@ -45,7 +48,12 @@ HDBSCAN is ideal for exploratory data analysis; it's a fast and robust
 algorithm that you can trust to return meaningful clusters (if there
 are any).
 
-Based on the paper:
+Based on the papers:
+
+    McInnes L, Healy J. *Accelerated Hierarchical Density Based Clustering* 
+    In: 2017 IEEE International Conference on Data Mining Workshops (ICDMW), IEEE, pp 33-42.
+    2017 `[pdf] <http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8215642>`_
+
     R. Campello, D. Moulavi, and J. Sander, *Density-Based Clustering Based on
     Hierarchical Density Estimates*
     In: Advances in Knowledge Discovery and Data Mining, Springer, pp 160-172.
@@ -144,7 +152,7 @@ Example usage:
     import hdbscan
     from sklearn.datasets import make_blobs
     
-    data = make_blobs(1000)
+    data, _ = make_blobs(1000)
     
     clusterer = hdbscan.RobustSingleLinkage(cut=0.125, k=7)
     cluster_labels = clusterer.fit_predict(data)
@@ -168,14 +176,24 @@ Easiest install, if you have Anaconda (thanks to conda-forge which is awesome!):
 
     conda install -c conda-forge hdbscan
 
-PyPI install, presuming you have sklearn and all its requirements (numpy and scipy) installed:
+PyPI install, presuming you have an up to date pip:
 
 .. code:: bash
 
     pip install hdbscan
 
-If pip is having difficulties pulling the dependencies then we'd suggest installing
-the dependencies manually using anaconda followed by pulling hdbscan from pip:
+Binary wheels for a number of platforms are available thanks to the work of
+Ryan Helinski <rlhelinski@gmail.com>.
+
+If pip is having difficulties pulling the dependencies then we'd suggest to first upgrade
+pip to at least version 10 and try again:
+
+.. code:: bash
+
+    pip install --upgrade pip
+    pip install hdbscan
+
+Otherwise install the dependencies manually using anaconda followed by pulling hdbscan from pip:
 
 .. code:: bash
 
@@ -184,7 +202,15 @@ the dependencies manually using anaconda followed by pulling hdbscan from pip:
     conda install scikit-learn
     pip install hdbscan
 
-For a manual install get this package:
+
+For a manual install of the latest code directly from GitHub:
+
+.. code:: bash
+
+    pip install --upgrade git+https://github.com/scikit-learn-contrib/hdbscan.git#egg=hdbscan
+
+
+Alternatively download the package, install requirements, and manually run the installer:
 
 .. code:: bash
 
@@ -192,25 +218,29 @@ For a manual install get this package:
     unzip master.zip
     rm master.zip
     cd hdbscan-master
-
-Install the requirements
-
-.. code:: bash
-
-    sudo pip install -r requirements.txt
     
-or
-
-.. code:: bash
-
-    conda install scikit-learn cython 
-
-Install the package
-
-.. code:: bash
-
+    pip install -r requirements.txt
+    
     python setup.py install
-    
+
+-----------------
+Running the Tests
+-----------------
+
+The package tests can be run after installation using the command:
+
+.. code:: bash
+
+    nosetests -s hdbscan
+
+or, if ``nose`` is installed but ``nosetests`` is not in your ``PATH`` variable:
+
+.. code:: bash
+
+    python -m nose -s hdbscan
+
+If one or more of the tests fail, please report a bug at https://github.com/scikit-learn-contrib/hdbscan/issues/new
+
 --------------
 Python Version
 --------------
@@ -241,6 +271,36 @@ If you have used this codebase in a scientific publication and wish to cite it, 
     L. McInnes, J. Healy, S. Astels, *hdbscan: Hierarchical density based clustering*
     In: Journal of Open Source Software, The Open Journal, volume 2, number 11.
     2017
+    
+.. code:: bibtex
+
+    @article{mcinnes2017hdbscan,
+      title={hdbscan: Hierarchical density based clustering},
+      author={McInnes, Leland and Healy, John and Astels, Steve},
+      journal={The Journal of Open Source Software},
+      volume={2},
+      number={11},
+      pages={205},
+      year={2017}
+    }
+    
+To reference the high performance algorithm developed in this library please cite our paper in ICDMW 2017 proceedings.
+
+    McInnes L, Healy J. *Accelerated Hierarchical Density Based Clustering* 
+    In: 2017 IEEE International Conference on Data Mining Workshops (ICDMW), IEEE, pp 33-42.
+    2017
+
+
+.. code:: bibtex
+
+    @inproceedings{mcinnes2017accelerated,
+      title={Accelerated Hierarchical Density Based Clustering},
+      author={McInnes, Leland and Healy, John},
+      booktitle={Data Mining Workshops (ICDMW), 2017 IEEE International Conference on},
+      pages={33--42},
+      year={2017},
+      organization={IEEE}
+    }
 
 ---------
 Licensing
