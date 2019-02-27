@@ -14,7 +14,6 @@ import skfuzzy as fuzz
 
 from sklearn import metrics
 from sklearn.decomposition import PCA
-
 from sklearn.metrics import homogeneity_score,homogeneity_completeness_v_measure
 from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn import cluster, datasets, mixture
@@ -24,11 +23,15 @@ from sklearn.datasets import make_blobs
 from sklearn.decomposition import NMF, FastICA, PCA
 from sklearn.manifold import TSNE, SpectralEmbedding
 from itertools import cycle, islice
+
+from skimage.filters import gaussian
+
+from scipy.ndimage import gaussian_filter1d
 from scipy.io import loadmat
 from scipy import mod
 from shogun import Jade, RealFeatures
 
-def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=False,algo_params=[],rng=10,cinds=[0,2,3,4,7,8,9,10],return_vs=0,return_bars=0,dinds=[0,1,2,3,4],save=False,title='misc',red=[], **kwargs
+def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=False,algo_params=[],rng=10,cinds=[0,2,3,4,7,8,9,10],return_vs=0,return_bars=0,dinds=[0,1,2,3,4],save=False,title='misc',red=[], out=True, return_AIC=False,fake=True, **kwargs
 ):
     
     '''
@@ -96,10 +99,12 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
 
     homo, comp, vs, idata, ialgo = [],[],[],[],[]
     
-    data = (('glass','Glass'),('pp','Poly'),('bb','Bluebelt'),('ptfe','PTFE'),('steel','Steel'
-            ))
-    
-    datasets2 = [data[j] for j in dinds]
+    if fake:
+        data = (('glass','Glass'),('pp','Poly'),('bb','Bluebelt'),('ptfe','PTFE'),('steel','Steel'
+                ))
+        datasets2 = [data[j] for j in dinds]
+    else:
+        datasets2 = (('chick_glass','Glass'),('chick_bluebelt','Bluebelt'))  
 
     default_base = {'quantile': .3,
                 'eps': .3,
@@ -120,26 +125,42 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
                 'mcs':10,
                 'nc':2}
     
+    aic = []
+    
     for i_dataset, (dataset,dat_name) in enumerate(datasets2):
 
         # update parameters with dataset-specific values
         params = default_base.copy()
         params.update(algo_params)
-
+        
+#         if outlier_detect:
+#             X = loadmat('2'+dataset)['Z']
+            
 
         if mode == 'de':
             X = loadmat('all'+dataset)['Z'][:,1:]
             X = np.column_stack((np.sum(X[:,1:3],1),np.sum(X[:,4:],1)))
         elif mode == 'se':
-            X = np.reshape(X, (20*68,1), order="F") 
+            X = loadmat('all'+dataset)['Z'][:,0]
+            X = np.reshape(X, (20*68,1), order="F")
         elif mode == 'all':
             X = loadmat('all'+dataset)['Z'][:,1:]
         elif mode == 'small':
-            X = loadmat('small_'+dataset)['Z']            
+            X = loadmat('small_'+dataset)['Z'] 
+        elif mode == 'gauss':
+            X = loadmat('all'+dataset)['Z'][:,1:]
+            for jj in range(0,5):
+                r2 = np.reshape(X[:,jj], (20,68), order="F")
+                X[:,jj] = np.reshape(gaussian_filter1d(r2,sigma=1),20*68,order="F")
+            X = PCA(n_components=2).fit_transform(X)            
         else:
             X = loadmat('2'+dataset)['Z']
-
-        label_true = loadmat('2'+dataset+'_mask')['BW']
+    
+        label_true = loadmat('2'+dataset+'_mask')['BW'] 
+        
+        if not fake:
+            X = X[400:,:].copy()
+            label_true = label_true[400:].copy()
 
         if w_positions:
             xx,yy = np.meshgrid(range(68),range(20))        
@@ -152,6 +173,9 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
             
         if red == 'ica':
             X = FastICA(n_components=params['nc']).fit_transform(X)
+        if red == 'icapca':
+            X = FastICA(n_components=5).fit_transform(X)
+            X = PCA(n_components=params['nc']).fit_transform(X)                
         if red == 'tsne':
             X = TSNE(n_components=params['nc']).fit_transform(X)
         if red == 'nmf':
@@ -164,14 +188,19 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
 
             
         # estimate bandwidth for mean shift
+#         if mode == 'se':
+#             bandwidth = None
+#         else:
         bandwidth = cluster.estimate_bandwidth(X, quantile=params['quantile'])
-
-        # connectivity matrix for structured Ward
+        
+#         if mode != 'se':
+            # connectivity matrix for structured Ward
         connectivity = kneighbors_graph(
-            X, n_neighbors=params['n_neighbors'], include_self=False)
-        # make connectivity symmetric
+                    X, n_neighbors=params['n_neighbors'], include_self=False)
         connectivity = 0.5 * (connectivity + connectivity.T)
- 
+#         else:
+#             connectivity = None
+
         # ============
         # Create cluster objects
         # ============
@@ -245,6 +274,10 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
                 
             homo1,comp1,vs1 = homogeneity_completeness_v_measure(label_true.squeeze(), y_pred)
             
+            if return_AIC:
+                if hasattr(algorithm, 'aic'):
+                    aic.append(algorithm.aic(X))
+            
             if sc:
                 plt.figure(1)
 
@@ -287,7 +320,10 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
 #                     y_pred[y_pred == aa] = y_pred.min()
             if sr:        
                 plt.figure(2)
-                r = np.reshape(y_pred, (20,68), order="F")
+                if fake:
+                    r = np.reshape(y_pred, (20,48), order="F")
+                else:
+                    r = np.reshape(y_pred, (20,48), order="F")
                 plt.subplot(len(datasets2), len(clustering_algorithms), plot_num)
                 if i_dataset == 0:
                     plt.title(name, size=18)
@@ -375,9 +411,10 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
         color_iter = cycle(['navy', 'turquoise', 'cornflowerblue',
                                       'darkorange','k'])
         # Plot the BIC scores
-        plt.figure(figsize=(8, 6))
-        plt.rcParams['axes.facecolor'] = (1,1,1)            
-        spl = plt.subplot(1, 1, 1)
+        if out:
+            plt.figure(figsize=(8, 6))
+            plt.rcParams['axes.facecolor'] = (1,1,1)            
+            spl = plt.subplot(1, 1, 1)
 
         for i, (cv_type, pcolor) in enumerate(zip(cv_types, color_iter)):
             xpos = np.array(n_components_range) + 0.166 * (i - 2)
@@ -394,23 +431,26 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
         bars2.sort()
         clustering_algorithms = [clustering_algorithms[i] for i in indeces]
         
-        plt.bar(n_components_range,bars2,color=colors)
-        plt.xticks(n_components_range,[item[0] for item in clustering_algorithms],rotation = 45, ha="right")
-        plt.xticks()
-        plt.ylim([0, 1])
-        plt.title('V Averaged over all Materials')
-        xpos = np.mod(vs.argmax(), len(n_components_range)) + .65 +\
-            .16 * np.floor(vs.argmax() / len(n_components_range))
-        plt.text(xpos, vs.min() * 0.97 + .03 * vs.max(), '*', fontsize=14)
-        spl.set_xlabel('Algorithm')
-        spl.set_ylabel('V-score')
-        #spl.legend([b[0] for b in bars], cv_types)  
-        plt.tight_layout()
+        if out:
+            plt.bar(n_components_range,bars2,color=colors)
+            plt.xticks(n_components_range,[item[0] for item in clustering_algorithms],rotation = 45, ha="right")
+            plt.xticks()
+            plt.ylim([0, 1])
+            plt.title('V Averaged over all Materials')
+            xpos = np.mod(vs.argmax(), len(n_components_range)) + .65 +\
+                .16 * np.floor(vs.argmax() / len(n_components_range))
+            plt.text(xpos, vs.min() * 0.97 + .03 * vs.max(), '*', fontsize=14)
+            spl.set_xlabel('Algorithm')
+            spl.set_ylabel('V-score')
+            #spl.legend([b[0] for b in bars], cv_types)  
+            plt.tight_layout()
         
         if return_bars:
             return bars
     if return_vs:    
         return vs
+    if return_AIC:
+        return aic
 
 def silhouette_analysis(dataset='glass',mode=[],scale=False,w_positions=False,plotting=True,include_1=False):
 
@@ -753,9 +793,11 @@ def plot_fuzzy(sc=0,sr=0,sv=1,mode=[],w_positions=False,scale=False,algo_params=
 
     homo, comp, vs, idata, ialgo = [],[],[],[],[]
     
-    datasets2 = (('glass','Glass'),('pp','Poly'),('bb','Bluebelt'),('ptfe','PTFE'),('steel','Steel'
-            ))
-
+    if fake:
+        datasets2 = (('glass','Glass'),('pp','Poly'),('bb','Bluebelt'),('ptfe','PTFE'),('steel','Steel'
+                ))
+    else:
+        datasets2 = (('chick_glass','Glass'),('chick_bluebelt','Bluebelt'))        
     default_base = {'quantile': .3,
                 'eps': .5,
                 'damping': .9,
@@ -1061,12 +1103,115 @@ def compare_3(bars_se,bars_de,bars_pc,title='all',leg=['Single Energy','Dual Ene
     plt.xticks(range(1,len(bars_pc2)*3,3),[item[0] for item in clustering_algorithms],rotation = 45, ha="right")
     plt.xticks()
     plt.ylim([0, 1])
-    plt.title('V Averaged over ' +title+ ' Materials')
+    plt.title(title)
     # xpos = np.mod(vs.argmax(), len(n_components_range)) + .65 +\
     #     .16 * np.floor(vs.argmax() / len(n_components_range))
     # plt.text(xpos, vs.min() * 0.97 + .03 * vs.max(), '*', fontsize=14)
     plt.xlabel('Algorithm')
     plt.ylabel('V-score')
+    plt.legend(leg)  
+    plt.tight_layout()
+    
+    plt.savefig('{}.png'.format(title))
+    
+def compare_2(bars_se,bars_pc,title='all',leg=['Single Energy','Spectral'],algo=True):
+    cinds=[0,2,3,4,7,8,9,10]
+
+    ms = []
+    two_means = []
+    ward =[]
+    spectral = []
+    dbscan = []
+    average_linkage = []
+    affinity_propagation = []
+    birch = []
+    gmm = []
+    bgmm = []
+    hdb = []
+
+    cinds_all = (
+        ('KMeans', two_means),
+        ('AffinityPropagation', affinity_propagation),
+        ('MeanShift', ms),
+        ('SpectralClustering', spectral),
+        ('Ward', ward),
+        ('AgglomerativeClustering', average_linkage),
+        ('DBSCAN', dbscan),
+        ('Birch', birch),
+        ('HDBSCAN', hdb),
+        ('GaussianMixture', gmm),
+        ('BGaussianMixture', bgmm)
+    )
+
+    clustering_algorithms = [cinds_all[j] for j in cinds]
+    
+    if algo:
+        
+        bars_se2 = np.mean(np.asarray(bars_se),axis=0)
+        bars_pc2 = np.mean(np.asarray(bars_pc),axis=0)
+
+        indeces = np.argsort(bars_pc2)
+
+        bars_se2 = bars_se2[indeces]
+
+        bars_pc2.sort()
+    else:
+        bars_se2 = np.asarray(bars_se)
+        bars_pc2 = np.asarray(bars_pc)     
+
+    # vs = np.asarray(vs)
+    bars = []
+    colors = []
+    n_components_range = range(len(bars_pc2))
+    # cv_types = [item[1] for item in datasets2]
+
+
+    # color_iter = cycle(['navy', 'turquoise', 'cornflowerblue',
+    #                               'darkorange','k'])
+    # # Plot the BIC scores
+    # plt.figure(figsize=(8, 6))
+    # plt.rcParams['axes.facecolor'] = (1,1,1)            
+    # spl = plt.subplot(1, 1, 1)
+
+    # for i, (cv_type, pcolor) in enumerate(zip(cv_types, color_iter)):
+    #     xpos = np.array(n_components_range) + 0.166 * (i - 2)
+    #     bars.append( vs[i * len(n_components_range):
+    #                                   (i + 1) * len(n_components_range)])
+
+    # # import ipdb; ipdb.set_trace()
+    [colors.append(colourblind(col)) for col in n_components_range]
+
+    # bars2 = np.mean(np.asarray(bars),axis=0)
+
+    # indeces = np.argsort(bars2)
+    # #         import ipdb; ipdb.set_trace()
+    # bars2.sort()
+    # bars2 = np.concatenate(bars_se2,bars_de2,bars_pc2)
+    datasets2 = (('glass','Glass'),('pp','Poly'),('bb','Bluebelt'),('ptfe','PTFE'),('steel','Steel'
+            ))
+    
+    if algo:
+        clustering_algorithms = [clustering_algorithms[i] for i in indeces]
+    
+
+    plt.bar(range(1,len(bars_pc2)*3,3),bars_se2,color=colourblind(2))
+    plt.bar(range(2,len(bars_pc2)*3,3),bars_pc2,color=colourblind(3))
+    if algo:
+        plt.xticks(range(1,len(bars_pc2)*3,3),[item[0] for item in clustering_algorithms],rotation = 45, ha="right")
+        plt.xlabel('Algorithm')
+        plt.ylabel('V-score')
+    else:
+        plt.xticks(range(1,len(bars_pc2)*3,3),[item[1] for item in datasets2],rotation = 45, ha="right")
+        plt.xlabel('Material')
+        plt.ylabel('AIC')        
+    plt.xticks()
+    if algo:
+        plt.ylim([0, 1])
+    plt.title('V Averaged over ' +title+ ' Materials')
+    # xpos = np.mod(vs.argmax(), len(n_components_range)) + .65 +\
+    #     .16 * np.floor(vs.argmax() / len(n_components_range))
+    # plt.text(xpos, vs.min() * 0.97 + .03 * vs.max(), '*', fontsize=14)
+
     plt.legend(leg)  
     plt.tight_layout()
     
