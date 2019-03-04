@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as color
 import matplotlib.cm as cm
 import hdbscan
-import skfuzzy as fuzz
+#import skfuzzy as fuzz
 
 from sklearn import metrics
 from sklearn.decomposition import PCA
@@ -29,7 +29,7 @@ from skimage.filters import gaussian
 from scipy.ndimage import gaussian_filter1d
 from scipy.io import loadmat
 from scipy import mod
-from shogun import Jade, RealFeatures
+#from shogun import Jade, RealFeatures
 
 def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=False,algo_params=[],rng=10,cinds=[0,2,3,4,7,8,9,10],return_vs=0,return_bars=0,dinds=[0,1,2,3,4],save=False,title='misc',red=[], out=True, return_AIC=False,fake=True, **kwargs
 ):
