@@ -172,7 +172,7 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
             X = StandardScaler().fit_transform(X)
             
         if red == 'ica':
-            X = FastICA(n_components=params['nc']).fit_transform(X)
+            X = FastICA(n_components=params['nc'],whiten=True).fit_transform(X)
         if red == 'icapca':
             X = FastICA(n_components=5).fit_transform(X)
             X = PCA(n_components=params['nc']).fit_transform(X)                

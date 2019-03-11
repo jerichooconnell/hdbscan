@@ -66,7 +66,7 @@ class I_gmm:
 #                    colors='black',alpha=0.3)
             ax.scatter(mean[0],mean[1],c='grey',zorder=10,s=100)        
         
-    def iterative_gmm(self,dataset = 'bb',fake = True,mode = 'gmm',binary = False,im_dir = './images/',savegif = False,title ='temp',bic_thresh = 0,maxiter = 40,nc =5,v_and_1 = False,thresh = 0.9,cov=[],n_components=2,covt='spherical'):
+    def iterative_gmm(self,dataset = 'bb',fake = True,mode = 'gmm',binary = False,im_dir = './images/',savegif = False,title ='temp',bic_thresh = 0,maxiter = 40,nc =5,v_and_1 = False,thresh = 0.9,cov=[],n_components=2,covt='spherical',ra=False,pca = True):
 
         '''
         dataset: string
@@ -78,6 +78,8 @@ class I_gmm:
         e.g. bin1 - bin0/sum
         binary: bool
         Whether or not to show the output as binary or not
+        nc: int
+        pca components
         '''
         # Clear the imagedir
         if savegif:
@@ -90,10 +92,12 @@ class I_gmm:
                     #elif os.path.isdir(file_path): shutil.rmtree(file_path)
                 except Exception as e:
                     print(e)
-
+        if ra:
+            arrowsU = []
+            arrowsV = []        
         bic0 = np.infty
         itern = 0
-        inds = [1,2,3]
+        inds = [2,3,4]
         label_true = loadmat('2'+dataset+'_mask')['BW'] 
         X1 = loadmat('all'+dataset)['Z'][:,inds]
 
@@ -287,6 +291,11 @@ class I_gmm:
             
             ax0.plot([X2[d,0],X1[d,0]],[X2[d,1],X1[d,1]],'r')
             
+            if ra:
+                arrowsU.append([X2[d,0],X1[d,0]])
+                arrowsV.append([X2[d,1],X1[d,1]])
+            
+            
             if binary:
                 plt.imshow(y_reshape,cmap='brg')
             else:
@@ -366,7 +375,11 @@ class I_gmm:
             for filename in files:
                 images.append(imageio.imread('./images/'+filename))
             imageio.mimsave(title + '.mp4', images,fps=1)
+            imageio.mimsave(title + '.gif', images)
 
+
+        if ra:
+            return arrowsU,arrowsV
     def find_paws(self,data, smooth_radius = 1, threshold = 0.0001):
         # https://stackoverflow.com/questions/4087919/how-can-i-improve-my-paw-detection
         """Detects and isolates contiguous regions in the input array"""

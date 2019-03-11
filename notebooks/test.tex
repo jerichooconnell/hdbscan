@@ -1,0 +1,1252 @@
+
+% Default to the notebook output style
+
+    
+
+
+% Inherit from the specified cell style.
+
+
+
+
+    
+\documentclass[11pt]{article}
+
+    
+    
+    \usepackage[T1]{fontenc}
+    % Nicer default font (+ math font) than Computer Modern for most use cases
+    \usepackage{mathpazo}
+
+    % Basic figure setup, for now with no caption control since it's done
+    % automatically by Pandoc (which extracts ![](path) syntax from Markdown).
+    \usepackage{graphicx}
+    % We will generate all images so they have a width \maxwidth. This means
+    % that they will get their normal width if they fit onto the page, but
+    % are scaled down if they would overflow the margins.
+    \makeatletter
+    \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth
+    \else\Gin@nat@width\fi}
+    \makeatother
+    \let\Oldincludegraphics\includegraphics
+    % Set max figure width to be 80% of text width, for now hardcoded.
+    \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=.8\maxwidth]{#1}}
+    % Ensure that by default, figures have no caption (until we provide a
+    % proper Figure object with a Caption API and a way to capture that
+    % in the conversion process - todo).
+    \usepackage{caption}
+    \DeclareCaptionLabelFormat{nolabel}{}
+    \captionsetup{labelformat=nolabel}
+
+    \usepackage{adjustbox} % Used to constrain images to a maximum size 
+    \usepackage{xcolor} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage{textcomp} % defines textquotesingle
+    % Hack from http://tex.stackexchange.com/a/47451/13684:
+    \AtBeginDocument{%
+        \def\PYZsq{\textquotesingle}% Upright quotes in Pygmentized code
+    }
+    \usepackage{upquote} % Upright quotes for verbatim code
+    \usepackage{eurosym} % defines \euro
+    \usepackage[mathletters]{ucs} % Extended unicode (utf-8) support
+    \usepackage[utf8x]{inputenc} % Allow utf-8 characters in the tex document
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics 
+                         % to support a larger range 
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    \usepackage[inline]{enumitem} % IRkernel/repr support (it uses the enumerate* environment)
+    \usepackage[normalem]{ulem} % ulem is needed to support strikethroughs (\sout)
+                                % normalem makes italics be italics, not underlines
+    
+
+    
+    
+    % Colors for the hyperref package
+    \definecolor{urlcolor}{rgb}{0,.145,.698}
+    \definecolor{linkcolor}{rgb}{.71,0.21,0.01}
+    \definecolor{citecolor}{rgb}{.12,.54,.11}
+
+    % ANSI colors
+    \definecolor{ansi-black}{HTML}{3E424D}
+    \definecolor{ansi-black-intense}{HTML}{282C36}
+    \definecolor{ansi-red}{HTML}{E75C58}
+    \definecolor{ansi-red-intense}{HTML}{B22B31}
+    \definecolor{ansi-green}{HTML}{00A250}
+    \definecolor{ansi-green-intense}{HTML}{007427}
+    \definecolor{ansi-yellow}{HTML}{DDB62B}
+    \definecolor{ansi-yellow-intense}{HTML}{B27D12}
+    \definecolor{ansi-blue}{HTML}{208FFB}
+    \definecolor{ansi-blue-intense}{HTML}{0065CA}
+    \definecolor{ansi-magenta}{HTML}{D160C4}
+    \definecolor{ansi-magenta-intense}{HTML}{A03196}
+    \definecolor{ansi-cyan}{HTML}{60C6C8}
+    \definecolor{ansi-cyan-intense}{HTML}{258F8F}
+    \definecolor{ansi-white}{HTML}{C5C1B4}
+    \definecolor{ansi-white-intense}{HTML}{A1A6B2}
+
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \providecommand{\tightlist}{%
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+    
+    % Additional commands for more recent versions of Pandoc
+    \newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{{#1}}}
+    \newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{{#1}}}
+    \newcommand{\ImportTok}[1]{{#1}}
+    \newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{{#1}}}}
+    \newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{{#1}}}
+    \newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{{#1}}}
+    \newcommand{\BuiltInTok}[1]{{#1}}
+    \newcommand{\ExtensionTok}[1]{{#1}}
+    \newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{{#1}}}
+    \newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{{#1}}}
+    \newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    
+    
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatability definitions
+    \def\gt{>}
+    \def\lt{<}
+    % Document parameters
+    \title{draft\_for\_paper}
+    
+    
+    
+
+    % Pygments definitions
+    
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\expandafter\def\csname PY@tok@w\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\expandafter\def\csname PY@tok@c\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.74,0.48,0.00}{##1}}}
+\expandafter\def\csname PY@tok@k\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\expandafter\def\csname PY@tok@o\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ow\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@ne\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.82,0.25,0.23}{##1}}}
+\expandafter\def\csname PY@tok@nv\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@no\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ni\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.60,0.60,0.60}{##1}}}
+\expandafter\def\csname PY@tok@na\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.49,0.56,0.16}{##1}}}
+\expandafter\def\csname PY@tok@nt\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@s\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sd\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@si\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@se\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sr\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@ss\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sx\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@m\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@gh\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gu\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gr\endcsname{\def\PY@tc##1{\textcolor[rgb]{1.00,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ge\endcsname{\let\PY@it=\textit}
+\expandafter\def\csname PY@tok@gs\endcsname{\let\PY@bf=\textbf}
+\expandafter\def\csname PY@tok@gp\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@go\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.53,0.53}{##1}}}
+\expandafter\def\csname PY@tok@gt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\expandafter\def\csname PY@tok@err\endcsname{\def\PY@bc##1{\setlength{\fboxsep}{0pt}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}
+\expandafter\def\csname PY@tok@kc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kd\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kr\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@bp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@fm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@vc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vg\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sa\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@dl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s2\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s1\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@mb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@il\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mo\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ch\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cm\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cpf\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@c1\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cs\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
+
+
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy 
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=urlcolor,
+      linkcolor=linkcolor,
+      citecolor=citecolor,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+    \begin{document}
+    
+    
+    \maketitle
+    
+    
+
+    
+
+
+
+
+
+
+
+
+
+
+    \hypertarget{draft-for-paper}{%
+\section{Draft for Paper}\label{draft-for-paper}}
+
+    \hypertarget{introduction}{%
+\subsection{Introduction}\label{introduction}}
+
+
+
+    Spectral imaging remains an unexplored imaging modality for multiple
+reasons. Firstly the price of spectral detectors is a large barrier to
+the clinical implementation. Secondly the applications where spectral
+imaging outdoes single energy and dual energy imaging are not well
+defined. Although there has been much interest in spectral CT in
+medicine it is often seen to have only small benefits as compared with
+dual energy CT in the same application.
+
+In this work we examine spectral imaging as compared to dual and single
+imaging in the application of segmentation. A comparison is made of the
+performance of unsupervised segmentation algorithms is performed on
+experimental images acquired using a Redlen (redlen industries \ldots{})
+spectral detector on a phantom composed of a variety of materials as
+well as images aquired of these same materials embedded in chicken
+breast.
+
+    \hypertarget{methods}{%
+\subsection{Methods}\label{methods}}
+
+    \hypertarget{data-aquisition}{%
+\subsubsection{Data aquisition}\label{data-aquisition}}
+
+
+
+    X-ray scans were performed on a PMMA phantom with 5 contaminates (steel,
+glass, plastic, polypropylene, and PFTE) as well as chicken flesh with
+various contaminates (bone, cartilage, fat, plastic, wood, glass, rock,
+steel, and aluminum).
+
+Data was acquired using a CZT detector with a 8\$\times\$12 mm imaging
+array from Redlen Technologies. The 330 \(\mu\)m pitch high-flux CZT
+detector is 2mm thick and is able to operate at 250
+\(\frac{Mcps}{mm^2}\) without any signs of polarization. Travel Heat
+Method (THM) was adopted by Redlen Technologies when growing the CZT
+crystals used in the detector. These crystals were placed in a sensor
+that is connected to a photon counting ASIC which operates at rates of
+up to 62.5 \(\frac{Mcps}{channel}\). This ASIC communicates with an
+external PC though LVDS I/Os via a programmable FPGA. The energies of
+photons incident with the detector are sorted into six energy bins by
+the ASIC. In the case of this experiment the energy bins were set to
+16-33 keV, 33-41 keV, 41-50 keV, 50-90 keV, 90-120 keV, \&
+120\textless{} keV.
+
+The detector and X-ray source were both mounted on vertical and
+horizontal linear motion stages from Newport Corporations. These stages
+were oriented perpendicular to each other to allow for easy navigation
+while imaging the phantom, which was mounted between these two stages.
+The X-ray source used was a module XRS-160 from Comet Technologies.
+
+The PMMA phantom block as imaged in figure (1.C) was placed on the stage
+and the 3 smallest contaminates of each material were imaged. To image
+these contaminates each at different heights, the CZT detector and X-ray
+source were moved vertically in a uniform manner allowing for each
+material to be centered without any motion of the phantom block itself.
+Following the first round of data acquisitions a second block of 18mm
+PMMA was placed in front of the phantom block and images were acquired
+to determine the depth at which each contaminate could be visualized.
+
+In the case of the chicken flesh, each contaminate was able to fit in a
+phantom holder alongside the chicken. This block was placed on the stage
+and was able to be imaged in one scan per contaminate.
+
+Air scans were completed for each data acquisition and could then be
+processed using MATLAB (The Mathworks, Natick, MA) for image
+reconstruction and CNR calculations for each contaminate. During all
+scans the X-ray tube was using a cone beam operating at 1mA, 120 kV,
+with a 1mm focal spot.
+
+    \hypertarget{data-analysis}{%
+\subsubsection{Data Analysis}\label{data-analysis}}
+
+    The main steps required to analyze hyperspectral images include
+pre-processing of data, dimensionality reduction, enhancement of
+spectral responses, and component detection or classification (Mahesh et
+al., 2015). Using this as an analog for spectral imaging similar methods
+are applied in this study with the exception of enhancement of spectral
+response as the modelling the spectral response of the CZT detector is
+beyond the scope of this study.
+
+    \hypertarget{pre-processing-of-data}{%
+\paragraph{Pre-processing of Data}\label{pre-processing-of-data}}
+
+    After data aquisition, data pre-processing was performed using
+MATLAB\_R2017b (The MathWorks, Natick, USA). The images were first
+cropped to remove the highly non-uniform edge pixels in some parts of
+the detector. Dead pixels were then found manually and replaced with NaN
+values in the image. These NaN values were then interpolated to be the
+average of the surrounding eight pixels. The images were then smoothed
+using a two dimensional gaussian filter with a standard deviation of 0.5
+in an effort to reduce the noise in the image.
+
+    \hypertarget{dimensional-reduction-methods}{%
+\subsubsection{Dimensional Reduction
+Methods}\label{dimensional-reduction-methods}}
+
+    \hypertarget{principle-component-analysis}{%
+\paragraph{Principle Component
+Analysis}\label{principle-component-analysis}}
+
+    Dimensional reduction methods were applied in this work to increase
+class seperation and reduce noise in the data, methods were implemented
+in Python using sci-kit learn. Data reduction methods employed in this
+study were Principle Component Analysis (PCA). PCA does an eigenvalue
+decomposition of the covariance matrix, sorting the eigenvectors in
+terms of the magnitude of their eigenvalue one finds the directions of
+highest variance in the data. The data is then projected into a lower
+dimensional orhtogonal space defined by the eigenvectors with the most
+variance, in this case the data was reduced to two dimensions. This
+method results in a loss of information, however this loss of
+information is usually relatively small and ideally the discarded
+dimensions in the data amount to noise in the data. PCA can be seen in
+fig \ref{}. PCA is fast, linear and sees application in many domains.
+
+    \hypertarget{independant-component-analysis}{%
+\paragraph{Independant Component
+Analysis}\label{independant-component-analysis}}
+
+
+
+    Typically not used for dimension reduction but for blind source
+seperation, independant component analysis (ICA) is used for seperating
+a mixed signal into its constituent signals and is often used in audio
+analysis but has seen use in hyperspectral imaging \ref{}. Using ICA we
+frame the segmentation of the two images as a decomposition in which the
+image is a weighted addition of two signals, the background material
+(PMMA) and the contaminant. ICA aims to find the maximum
+
+The components \(x_i\) of the images with 5 bins
+\(\boldsymbol{x}=(x_1,\ldots,x_5)^T\) are seen to be a sum of the
+independent components \(s_k\), \(k=1,\ldots,5\):
+
+\(x_i = a_{i,1} s_1 + \cdots + a_{i,k} s_k + \cdots + a_{i,5} s_5\)
+
+where \(a_{i,k}\) are the mixing weights.
+
+Or in matrix form as
+\(\boldsymbol{x}=\sum_{k=1}^{5} s_k \boldsymbol{a}_k\), where our image
+vectors \(\boldsymbol{x}\) are represented by the basis vectors
+\(\boldsymbol{a}_k=(\boldsymbol{a}_{1,k},\ldots,\boldsymbol{a}_{m,k})^T\).
+The basis vectors \(\boldsymbol{a}_k\) form the columns of the mixing
+matrix \(\boldsymbol{A}=(\boldsymbol{a}_1,\ldots,\boldsymbol{a}_5)\).
+
+Putting all this together we have the matrix equation
+\(\boldsymbol{x}=\boldsymbol{A} \boldsymbol{s}\), where
+\(\boldsymbol{s}=(s_1,\ldots,s_5)^T\).
+
+Given our images \(\boldsymbol{x}_1,\ldots,\boldsymbol{x}_N\) of the
+random vector \(\boldsymbol{x}\), the task is to estimate both the
+mixing matrix \(\boldsymbol{A}\) and the sources \(\boldsymbol{s}\).
+This is done by adaptively calculating the \(\boldsymbol{w}\) vectors
+and setting up a cost function which maximizes the non-gaussianity of
+the calculated \(s_k = \boldsymbol{w}^T \boldsymbol{x}\).
+
+In this paper we use the maximum likelihood estimate (MLE) algorithm for
+finding the unmixing matrix \(W\)
+
+''`{[}{[}Maximum likelihood{]}{]} estimation (MLE)''' is a standard
+statistical tool for finding parameter values (e.g.~the unmixing matrix
+\(\mathbf{W}\)) that provide the best fit of some data (e.g., the
+extracted signals \(y\)) to a given a model (e.g., the assumed joint
+probability density function (pdf) \(p_s\) of source signals).
+
+The '`'ML''' ``model'' includes a specification of a pdf, which in this
+case is the pdf \(p_s\) of the unknown source signals \(s\). Using '`'ML
+ICA''', the objective is to find an unmixing matrix that yields
+extracted signals \(y = \mathbf{W}x\) with a joint pdf as similar as
+possible to the joint pdf \(p_s\) of the unknown source signals \(s\).
+
+'`'MLE''' is thus based on the assumption that if the model pdf \(p_s\)
+and the model parameters \(\mathbf{A}\) are correct then a high
+probability should be obtained for the data \(x\) that were actually
+observed. Conversely, if \(\mathbf{A}\) is far from the correct
+parameter values then a low probability of the observed data would be
+expected.
+
+Using '`'MLE''`, we call the probability of the observed data for a
+given set of model parameter values (e.g., a pdf \(p_s\) and a matrix
+\(\mathbf{A}\)) the'`likelihood'' of the model parameter values given
+the observed data.
+
+We define a `'likelihood'' function \(\mathbf{L(W)}\) of \(\mathbf{W}\):
+
+\$\mathbf{ L(W)} = p\_s
+(\mathbf{W}x)\textbar{}\det \mathbf{W}\textbar{}. \$
+
+This equals to the probability density at \(x\), since
+\(s = \mathbf{W}x\).
+
+Thus, if we wish to find a \(\mathbf{W}\) that is most likely to have
+generated the observed mixtures \(x\) from the unknown source signals
+\(s\) with pdf \(p_s\) then we need only find that \(\mathbf{W}\) which
+maximizes the `'likelihood'' \(\mathbf{L(W)}\). The unmixing matrix that
+maximizes equation is known as the '`'MLE''' of the optimal unmixing
+matrix.
+
+It is common practice to use the log `'likelihood'`, because this is
+easier to evaluate. As the logarithm is a monotonic function, the
+\(\mathbf{W}\) that maximizes the function \(\mathbf{L(W)}\) also
+maximizes its logarithm \(\ln \mathbf{L(W)}\). This allows us to take
+the logarithm of equation above, which yields the log'`likelihood''
+function
+
+\(\ln \mathbf{L(W)} =\sum_{i}\sum_{t} \ln p_s(w^T_ix_t) + N\ln|\det \mathbf{W}|\)
+
+If we substitute a commonly used high-{[}{[}Kurtosis{]}{]} model pdf for
+the source signals \(p_s = (1-\tanh(s)^2)\) then we have
+
+\(\ln \mathbf{L(W)} ={1 \over N}\sum_{i}^{M} \sum_{t}^{N}\ln(1-\tanh(w^T_i x_t )^2) + \ln |\det \mathbf{W}|\)
+
+This matrix \(\mathbf{W}\) that maximizes this function is the MLE.
+
+    \hypertarget{non-negative-matrix-factorization}{%
+\paragraph{Non-negative Matrix
+Factorization}\label{non-negative-matrix-factorization}}
+
+
+
+    Let matrix \(V\) be the product of the matrices \(W\) and \(H\),
+:\(\mathbf{V} = \mathbf{W} \mathbf{H} \,.\)
+
+Matrix multiplication can be implemented as computing the column vectors
+of \(V\) as linear combinations of the column vectors in \(W\) using
+coefficients supplied by columns of \(H\). That is, each column of \(V\)
+can be computed as follows:
+:\(\mathbf{v}_i = \mathbf{W} \mathbf{h}_{i} \,,\)
+
+where \(\mathbf{v}_i\) is the \(i\)-th column vector of the product
+matrix \(V\) and \(\mathbf{h}_{i}\) is the \(i\)-th column vector of the
+matrix \(H\).
+
+When multiplying matrices, the dimensions of the factor matrices may be
+significantly lower than those of the product matrix and it is this
+property that forms the basis of NMF. NMF generates factors with
+significantly reduced dimensions compared to the original matrix. For
+example, if \(V\) is an \(m × n\) matrix, \(W\) is an \(m × p\) matrix,
+and \(H\) is a \(p × n\) matrix then \(p\) can be significantly less
+than both \(m\) and \(n\).
+
+Here is an example based on a text-mining application: * Let the input
+matrix (the matrix to be factored) be \(V\) with 10000 rows and 500
+columns where words are in rows and documents are in columns. That is,
+we have 500 documents indexed by 10000 words. It follows that a column
+vector \(v\) in \(V\) represents a document. * Assume we ask the
+algorithm to find 10 features in order to generate a `'features matrix''
+\(W\) with 10000 rows and 10 columns and a `'coefficients matrix'' \(H\)
+with 10 rows and 500 columns. * The product of \(W\) and \(H\) is a
+matrix with 10000 rows and 500 columns, the same shape as the input
+matrix \(V\) and, if the factorization worked, it is a reasonable
+approximation to the input matrix \(V\). * From the treatment of matrix
+multiplication above it follows that each column in the product matrix
+\(WH\) is a linear combination of the 10 column vectors in the features
+matrix \(W\) with coefficients supplied by the coefficients matrix
+\(H\).
+
+This last point is the basis of NMF because we can consider each
+original document in our example as being built from a small set of
+hidden features. NMF generates these features.
+
+It is useful to think of each feature (column vector) in the features
+matrix \(W\) as a document archetype comprising a set of words where
+each word's cell value defines the word's rank in the feature: The
+higher a word's cell value the higher the word's rank in the feature. A
+column in the coefficients matrix \(H\) represents an original document
+with a cell value defining the document's rank for a feature. We can now
+reconstruct a document (column vector) from our input matrix by a linear
+combination of our features (column vectors in \(W\)) where each feature
+is weighted by the feature's cell value from the document's column in
+\(H\).
+
+== Clustering property == NMF has an inherent clustering property, i.e.,
+it automatically clusters the columns of input data \$\mathbf{V} =
+(v\_1, \cdots, v\_n) \$.
+
+More specifically, the approximation of \(\mathbf{V}\) by
+\(\mathbf{V} \simeq \mathbf{W}\mathbf{H}\) is achieved by minimizing the
+error function
+
+\$ \min\_\{W,H\} \textbar{}\textbar{} V - WH \textbar{}\textbar{}\_F,\$
+subject to \(W \geq 0, H \geq 0.\)
+
+Furthermore, the computed \$ H \$ gives the cluster membership, i.e., if
+\$\mathbf{H}\emph{\{kj\} \textgreater{} \mathbf{H}}\{ij\} \$ for all i ≠
+k, this suggests that the input data \$ v\_j \$ belongs to \(k^{th}\)
+cluster. The computed \(W\) gives the cluster centroids, i.e., the
+\(k^{th}\) column gives the cluster centroid of \(k^{th}\) cluster. This
+centroid's representation can be significantly enhanced by convex NMF.
+
+When the orthogonality \$ H H\^{}T = I \$ is not explicitly imposed, the
+orthogonality holds to a large extent, and the clustering property holds
+too. Clustering is the main objective of most {[}{[}data mining{]}{]}
+applications of NMF.\{\{citation needed\textbar{}date=April 2015\}\}
+
+When the error function to be used is {[}{[}Kullback--Leibler
+divergence{]}{]}, NMF is identical to the {[}{[}Probabilistic latent
+semantic analysis{]}{]}, a popular document clustering method.C Ding, T
+Li, W Peng,
+{[}http://users.cis.fiu.edu/\textasciitilde{}taoli/pub/NMFpLSIequiv.pdf
+" On the equivalence between non-negative matrix factorization and
+probabilistic latent semantic indexing"{]} Computational Statistics \&
+Data Analysis 52, 3913-3927
+
+    \hypertarget{nmf-plot}{%
+\subsection{NMF plot}\label{nmf-plot}}
+
+    \hypertarget{ica-plot}{%
+\subsection{ICA plot}\label{ica-plot}}
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_27_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_27_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_30_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{nmf-plot}{%
+\subsection{NMF plot}\label{nmf-plot}}
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_32_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{clustering-methods}{%
+\subsection{Clustering Methods}\label{clustering-methods}}
+
+    \hypertarget{k-means}{%
+\subsubsection{K-means}\label{k-means}}
+
+
+
+    The first clustering method implemented was k-means clustering. K-means
+was implemented using the k-means++ algorithm of (???). K-means was fit
+using a value for the number of clusters \(k\) defined through the use
+of silhouette analysis. Different distance metrics were used, however
+none of the distance metrics tried improved performance over the squared
+euclidean distance, thus squared euclidean distance was used as the
+metric.
+
+about k-means:
+
+``K-Means is the `go-to' clustering algorithm for many simply because it
+is fast, easy to understand, and available everywhere (there's an
+implementation in almost any statistical or machine learning tool you
+care to use). K-Means has a few problems however. The first is that it
+isn't a clustering algorithm, it is a partitioning algorithm. That is to
+say K-means doesn't `find clusters' it partitions your dataset into as
+many (assumed to be globular) chunks as you ask for by attempting to
+minimize intra-partition distances. That leads to the second problem:
+you need to specify exactly how many clusters you expect. If you know a
+lot about your data then that is something you might expect to know. If,
+on the other hand, you are simply exploring a new dataset then `number
+of clusters' is a hard parameter to have any good intuition for. The
+usually proposed solution is to run K-Means for many different `number
+of clusters' values and score each clustering with some `cluster
+goodness' measure (usually a variation on intra-cluster vs inter-cluster
+distances) and attempt to find an `elbow'. If you've ever done this in
+practice you know that finding said elbow is usually not so easy, nor
+does it necessarily correlate as well with the actual `natural' number
+of clusters as you might like. Finally K-Means is also dependent upon
+initialization; give it multiple different random starts and you can get
+multiple different clusterings. This does not engender much confidence
+in any individual clustering that may result.''
+
+    \begin{longtable}[]{@{}lllll@{}}
+\toprule
+\begin{minipage}[b]{0.25\columnwidth}\raggedright
+Method name\strut
+\end{minipage} & \begin{minipage}[b]{0.15\columnwidth}\raggedright
+Parameters\strut
+\end{minipage} & \begin{minipage}[b]{0.13\columnwidth}\raggedright
+Scalability\strut
+\end{minipage} & \begin{minipage}[b]{0.20\columnwidth}\raggedright
+Usecase\strut
+\end{minipage} & \begin{minipage}[b]{0.12\columnwidth}\raggedright
+Geometry (metric used)\strut
+\end{minipage}\tabularnewline
+\midrule
+\endhead
+\begin{minipage}[t]{0.25\columnwidth}\raggedright
+{K-Means \textless{}k\_means\textgreater{}}\strut
+\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright
+number of clusters\strut
+\end{minipage} & \begin{minipage}[t]{0.13\columnwidth}\raggedright
+Very large \texttt{n\_samples}, medium \texttt{n\_clusters} with\strut
+\end{minipage} & \begin{minipage}[t]{0.20\columnwidth}\raggedright
+General-purpose, even cluster size, flat geometry, not too many
+clusters\strut
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Distances between points\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.25\columnwidth}\raggedright
+{Affinity propagation
+\textless{}affinity\_propagation\textgreater{}}\strut
+\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright
+damping, sample preference\strut
+\end{minipage} & \begin{minipage}[t]{0.13\columnwidth}\raggedright
+Not scalable with n\_samples\strut
+\end{minipage} & \begin{minipage}[t]{0.20\columnwidth}\raggedright
+Many clusters, uneven cluster size, non-flat geometry\strut
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Graph distance (e.g.~nearest-neighbor graph)\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.25\columnwidth}\raggedright
+{Mean-shift \textless{}mean\_shift\textgreater{}}\strut
+\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright
+bandwidth\strut
+\end{minipage} & \begin{minipage}[t]{0.13\columnwidth}\raggedright
+Not scalable with \texttt{n\_samples}\strut
+\end{minipage} & \begin{minipage}[t]{0.20\columnwidth}\raggedright
+Many clusters, uneven cluster size, non-flat geometry\strut
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Distances between points\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.25\columnwidth}\raggedright
+{Spectral clustering
+\textless{}spectral\_clustering\textgreater{}}\strut
+\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright
+number of clusters\strut
+\end{minipage} & \begin{minipage}[t]{0.13\columnwidth}\raggedright
+Medium \texttt{n\_samples}, small \texttt{n\_clusters}\strut
+\end{minipage} & \begin{minipage}[t]{0.20\columnwidth}\raggedright
+Few clusters, even cluster size, non-flat geometry\strut
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Graph distance (e.g.~nearest-neighbor graph)\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.25\columnwidth}\raggedright
+{Ward hierarchical clustering
+\textless{}hierarchical\_clustering\textgreater{}}\strut
+\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright
+number of clusters\strut
+\end{minipage} & \begin{minipage}[t]{0.13\columnwidth}\raggedright
+Large \texttt{n\_samples} and \texttt{n\_clusters}\strut
+\end{minipage} & \begin{minipage}[t]{0.20\columnwidth}\raggedright
+Many clusters, possibly connectivity constraints\strut
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Distances between points\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.25\columnwidth}\raggedright
+{Agglomerative clustering
+\textless{}hierarchical\_clustering\textgreater{}}\strut
+\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright
+number of clusters, linkage type, distance\strut
+\end{minipage} & \begin{minipage}[t]{0.13\columnwidth}\raggedright
+Large \texttt{n\_samples} and \texttt{n\_clusters}\strut
+\end{minipage} & \begin{minipage}[t]{0.20\columnwidth}\raggedright
+Many clusters, possibly connectivity constraints, non Euclidean
+distances\strut
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Any pairwise distance\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.25\columnwidth}\raggedright
+{hDBSCAN \textless{}dbscan\textgreater{}}\strut
+\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright
+neighborhood size\strut
+\end{minipage} & \begin{minipage}[t]{0.13\columnwidth}\raggedright
+Very large \texttt{n\_samples}, medium \texttt{n\_clusters}\strut
+\end{minipage} & \begin{minipage}[t]{0.20\columnwidth}\raggedright
+Non-flat geometry, uneven cluster sizes\strut
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Distances between nearest points\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.25\columnwidth}\raggedright
+{Gaussian mixtures \textless{}mixture\textgreater{}}\strut
+\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright
+many\strut
+\end{minipage} & \begin{minipage}[t]{0.13\columnwidth}\raggedright
+Not scalable\strut
+\end{minipage} & \begin{minipage}[t]{0.20\columnwidth}\raggedright
+Flat geometry, good for density estimation\strut
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Mahalanobis distances to centers\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.25\columnwidth}\raggedright
+{Birch}\strut
+\end{minipage} & \begin{minipage}[t]{0.15\columnwidth}\raggedright
+branching factor, threshold, optional global clusterer.\strut
+\end{minipage} & \begin{minipage}[t]{0.13\columnwidth}\raggedright
+Large \texttt{n\_clusters} and \texttt{n\_samples}\strut
+\end{minipage} & \begin{minipage}[t]{0.20\columnwidth}\raggedright
+Large dataset, outlier removal, data reduction.\strut
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Euclidean distance between points\strut
+\end{minipage}\tabularnewline
+\bottomrule
+\end{longtable}
+
+    \hypertarget{mean-shift}{%
+\subsubsection{Mean Shift}\label{mean-shift}}
+
+
+
+    ``Mean shift is another option if you don't want to have to specify the
+number of clusters. It is centroid based, like K-Means and affinity
+propagation, but can return clusters instead of a partition. The
+underlying idea of the Mean Shift algorithm is that there exists some
+probability density function from which the data is drawn, and tries to
+place centroids of clusters at the maxima of that density function. It
+approximates this via kernel density estimation techniques, and the key
+parameter is then the bandwidth of the kernel used. This is easier to
+guess than the number of clusters, but may require some staring at, say,
+the distributions of pairwise distances between data points to choose
+successfully. The other issue (at least with the sklearn implementation)
+is that it is fairly slow depsite potentially having good scaling!''
+
+
+
+
+    
+    \begin{verbatim}
+<Figure size 1512x900 with 0 Axes>
+    \end{verbatim}
+
+    
+    \hypertarget{results}{%
+\subsection{Results}\label{results}}
+
+    \hypertarget{comparison-of-different-dimensional-reduction-methods}{%
+\subsection{Comparison of different Dimensional Reduction
+methods}\label{comparison-of-different-dimensional-reduction-methods}}
+
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_44_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_44_2.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_44_3.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_45_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    As can be seen above in figure \ref{???} PCA dimensional reduction was
+seen to be superior averaged over all of the materials in all cases and
+among the algorithm examined the Gaussian Mixtures performed the best
+with the PCA dimensional reduction. If we look at cluster plots of the
+points in the clustering \ref{???}:
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_47_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_47_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_47_2.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_47_3.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_47_4.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_47_5.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+    These figures show bluebelt seperated using the the three dimensional
+reduction methods using a bGMM model for clustering. bGMM was used since
+it has the highest score averaged over all of the reduction methods. One
+can see that NMF does not result in a clean seperation in the data and
+thus had a poor result using bGMM. Similarly the seperation using the
+ICA was more complete but did not approach the PCA in terms of
+completeness.
+
+We can also add the spacial data to the features and then try the
+dimensional reduction, but first we must normalize and put the mean to
+zero in the spatial data, adding this we get:
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_50_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_50_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_50_2.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_51_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+    We can see that NMF has a lot of success in the seperation of the
+different materials if the materials are hard. In fact we see that for
+hard materials NMF is the best method in terms of V-measure with a
+V-measure of 0.92 in glass and 0.83 in steel using the bGMM clustering
+method.
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_54_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_54_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{comparison-of-soft-and-hard-materials}{%
+\subsubsection{Comparison of soft and hard
+Materials}\label{comparison-of-soft-and-hard-materials}}
+
+
+
+    Continuing our examination of the difference between the soft and hard
+materials that we started in the above section one can see a full
+comparison below using PCA as the dimensional reduction method as it was
+shown to be the best on average.
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_58_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_58_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_58_2.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_59_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+    Looking at figure \ref{???} one immediatly sees two things: Firstly that
+the hard tissues are on average easier to cluster by all of the
+clustering algorithms as expected due to the different in density
+relative to the PMMA. Secondly, one can see that we have a clean winner
+in terms of clustering algorithms as bGMM holds the highest V-measure
+for both soft and hard tissues. Thus one can recommend the use of bGMM
+as the clustering method of choice for spectral imaging. The V-measure
+for bGMM was seen to be 0.69 for the soft tissues and 0.80 for the hard
+tissues.
+
+    \hypertarget{dual-and-single-energy-comparison}{%
+\subsubsection{Dual and Single Energy
+Comparison}\label{dual-and-single-energy-comparison}}
+
+    When using spectral imaging it is important to quantify the benefits of
+the extra information over that of conventional single energy integrated
+imaging and dual energy imaging. In figure \ref{???} one sees the
+results of the comparison between single, dual and spectral imaging.
+
+
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_65_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    We can see that the spectral imaging and dual energy imaging have a
+slight advantage over single energy imaging. Again looking at the V
+Meaure for the bGMM since it is the top performing algorithm we see that
+spectral imaging has on average a score of 0.73 trailed by dual energy
+at 0.69 and single energy at 0.67. Looking at these numbers it seems
+that perhaps a 5\% gain in V-meaure over dual energy is not worth the
+cost of spectral detectors however when looking at the performance
+seperating hard and soft tissues we see a different story.
+
+
+
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_68_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    Figure \ref{???} shows that although on average the gain is quite
+marginal between spectral and other energy combination when it comes to
+soft materials over all of the different clustering methods. This gain
+is quite substantial, for instance the bGMM for dual energy has a 21\%
+gain over dual energy jumping from 0.57 to 0.69.
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_70_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_71_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    We see that in the hard material case we have much worse performance of
+the spectral detector relative to the single and dual energy case. This
+is understandable since in the case of hard materials the pixels can be
+linearly seperated based on their density alone and the attenuation of
+the materials as a function of energy is redundant information as the
+two materials are already seperable in one dimension. In fact, the
+seperation of the energy bins incurres a cost of worse photon
+statistics. If we approximate the fit as the result of \(n\) poisson
+variables then the noise for a fit using \(n\) bins of equal fluence
+will for the worst case have \(\sqrt{n}\) more noise if the bins are
+treated independantly. In this work the bGMM has a 11\% reduction in V
+measure as compared to the single energy case with a value of 0.89 as
+compared to 0.802. Interestingly, comparing this value to the NMF result
+in figure \ref{???} we note that in fact the NMF with the spectral
+imaging produces a higher V measure on the steel than the single energy
+image and a slightly lower value on the glass, although still higher
+than the values for the glass using PCA spectral imaging.
+
+    \hypertarget{measure-of-number-of-bins}{%
+\subsubsection{Measure of Number of
+Bins}\label{measure-of-number-of-bins}}
+
+    An important note in this work is that many of the algorithms take as a
+parameter the number of bins to be used in the fit. There are multiple
+metrics for determining the number of bins for various algorithms. Since
+bGMM was seen to perform the best on the dataset we will focus on
+methods for determining the number for this algorithm.
+
+    AIC was used as the determining factor for the number of bins. A maximum
+number of bins was set to two for this study as the main differentiation
+we are looking for is between one and two materials. However it is
+possible to allow more bins for looking at a larger variety of
+materials.
+
+
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_77_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    As one can see above for all of the materials it is seen that it is
+preferable to the two energy approach.
+
+    \hypertarget{real-data}{%
+\subsubsection{Real Data}\label{real-data}}
+
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_80_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_80_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    The above image is the seperation
+
+
+
+    
+    \begin{verbatim}
+<IPython.core.display.HTML object>
+    \end{verbatim}
+
+    
+
+
+            
+
+
+            
+
+
+            
+
+
+            
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_87_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_88_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_88_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_89_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_89_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{filtering-of-the-data}{%
+\subsubsection{Filtering of the Data}\label{filtering-of-the-data}}
+
+    To better fit the data a new method was introduced to reduce noise and
+eliminate outliers that would show up positive on the scan. When
+scanning one would not be concerned with contaminants on the order of
+1-5 pixels as these could likely be the product of noise and lead to
+false positives. The question being what size of contaminant do we wish
+to recognize since the probability of a random cluster of noisy points
+in the data is high we think this should be a relatively large amount.
+For small groups of points in the image this method will likely
+interpolate them into the background. But for larger groups of points in
+the image, this method will further seperate the clusters. Thus we
+present a method that is much more robust in that it will eliminate
+redundant clusters if a cluster is not dense and it's points are at the
+edge of it's gaussian distribution. However, if the two gaussian mixed
+models contain real gaussian distribution this methods reduces variance
+in the mixtures and successfully reasigns many points at the edge of the
+cluster.
+
+
+
+
+
+
+
+
+
+
+
+
+            
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_95_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+            
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_96_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+            
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_97_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+            
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_98_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+
+            
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{draft_for_paper_files/draft_for_paper_99_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+    \end{document}
