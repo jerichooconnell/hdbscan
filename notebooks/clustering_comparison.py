@@ -23,15 +23,16 @@ from sklearn.datasets import make_blobs
 from sklearn.decomposition import NMF, FastICA, PCA
 from sklearn.manifold import TSNE, SpectralEmbedding
 from itertools import cycle, islice
+import iterative_gmm
 
 from skimage.filters import gaussian
 
-from scipy.ndimage import gaussian_filter1d
+from scipy.ndimage.filters import gaussian_filter,gaussian_gradient_magnitude,gaussian_laplace
 from scipy.io import loadmat
 from scipy import mod
 #from shogun import Jade, RealFeatures
 
-def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=False,algo_params=[],rng=10,cinds=[0,2,3,4,7,8,9,10],return_vs=0,return_bars=0,dinds=[0,1,2,3,4],save=False,title='misc',red=[], out=True, return_AIC=False,fake=True, **kwargs
+def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=False,algo_params=[],rng=10,cinds=[0,2,3,4,7,8,9,10,11],return_vs=0,return_bars=0,dinds=[0,1,2,3,4],save=False,title='misc',red=[], out=True, return_AIC=False,fake=True,return_weights=False,passred=False, **kwargs
 ):
     
     '''
@@ -101,7 +102,8 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
     
     if fake:
         data = (('glass','Glass'),('pp','Poly'),('bb','Bluebelt'),('ptfe','PTFE'),('steel','Steel'
-                ))
+                    ),('PMMA','PMMA'))
+
         datasets2 = [data[j] for j in dinds]
     else:
         datasets2 = (('chick_glass','Glass'),('chick_bluebelt','Bluebelt'))  
@@ -136,23 +138,32 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
 #         if outlier_detect:
 #             X = loadmat('2'+dataset)['Z']
             
-
+        sig= 0.5
+        
+        inds = [1,2,3,4,5]
+        
         if mode == 'de':
-            X = loadmat('all'+dataset)['Z'][:,1:]
-            X = np.column_stack((np.sum(X[:,1:3],1),np.sum(X[:,4:],1)))
+            X = loadmat('all'+dataset)['Z']
+            for jj in range(0,6):
+                r2 = np.reshape(X[:,jj], (20,68), order="F")
+                X[:,jj] = np.reshape(gaussian(r2,sigma=sig),20*68,order="F")            
+            X = np.column_stack((np.sum(X[:,1:2],1),np.sum(X[:,3:],1)))
         elif mode == 'se':
             X = loadmat('all'+dataset)['Z'][:,0]
+#             for jj in range(0,6):
+            r2 = np.reshape(X, (20,68), order="F")
+            X = np.reshape(gaussian(r2,sigma=sig),20*68,order="F")
+#             X = np.sum(X,1)
             X = np.reshape(X, (20*68,1), order="F")
         elif mode == 'all':
-            X = loadmat('all'+dataset)['Z'][:,1:]
+            X = loadmat('all'+dataset)['Z'][:,inds]
         elif mode == 'small':
             X = loadmat('small_'+dataset)['Z'] 
         elif mode == 'gauss':
-            X = loadmat('all'+dataset)['Z'][:,1:]
-            for jj in range(0,5):
+            X = loadmat('all'+dataset)['Z'][:,inds]
+            for jj in range(0,len(inds)):
                 r2 = np.reshape(X[:,jj], (20,68), order="F")
-                X[:,jj] = np.reshape(gaussian_filter1d(r2,sigma=1),20*68,order="F")
-            X = PCA(n_components=2).fit_transform(X)            
+                X[:,jj] = np.reshape(gaussian(r2,sigma=sig),20*68,order="F")
         else:
             X = loadmat('2'+dataset)['Z']
     
@@ -225,6 +236,8 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
         bgmm = mixture.BayesianGaussianMixture(
             n_components=params['n_clusters'], covariance_type=params['ct'])
         hdb = hdbscan.HDBSCAN(min_samples=params['min_samples'],min_cluster_size=params['mcs'],metric=params['metric'],allow_single_cluster=params['asc'],p=params['p'], **kwargs)
+        bgmmi = mixture.BayesianGaussianMixture(
+            n_components=params['n_clusters'], covariance_type=params['ct'])
         
         cinds_all = (
             ('KMeans', two_means),
@@ -237,7 +250,8 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
             ('Birch', birch),
             ('HDBSCAN', hdb),
             ('GaussianMixture', gmm),
-            ('BGaussianMixture', bgmm)
+            ('BGaussianMixture', bgmm),
+            ('IBGMM',bgmmi)
         )
 
         clustering_algorithms = [cinds_all[j] for j in cinds]
@@ -269,14 +283,28 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
                 y_pred = algorithm.labels_.astype(np.int)
             elif hasattr(algorithm, 'condensed_tree_'):
                 y_pred = algorithm.fit_predict(X)
+            elif name == 'IBGMM':
+                I = iterative_gmm.I_gmm()
+                if passred:
+                    vs1 = I.iterative_gmm(dataset=dataset,savegif=False,title='01_good_run',
+                            binary=True,mode2='bgmm',mode=mode,nc = 3,v_and_1=True,
+                            n_components=2,maxiter=20,thresh=0.9,ra = True,red=red)
+                else:
+                    vs1 = I.iterative_gmm(dataset=dataset,savegif=False,title='01_good_run',
+                        binary=True,mode2='bgmm',mode=mode,nc = 3,v_and_1=True,
+                        n_components=2,maxiter=20,thresh=0.9,ra = True)
             else:
                 y_pred = algorithm.predict(X)
-                
-            homo1,comp1,vs1 = homogeneity_completeness_v_measure(label_true.squeeze(), y_pred)
             
+            if name != 'IBGMM':
+                homo1,comp1,vs1 = homogeneity_completeness_v_measure(label_true.squeeze(), y_pred)
+        
             if return_AIC:
                 if hasattr(algorithm, 'aic'):
                     aic.append(algorithm.aic(X))
+            if return_weights:
+                aic.append(algorithm.weights_)
+                
             
             if sc:
                 plt.figure(1)
@@ -321,7 +349,7 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
             if sr:        
                 plt.figure(2)
                 if fake:
-                    r = np.reshape(y_pred, (20,48), order="F")
+                    r = np.reshape(y_pred, (20,68), order="F")
                 else:
                     r = np.reshape(y_pred, (20,48), order="F")
                 plt.subplot(len(datasets2), len(clustering_algorithms), plot_num)
@@ -352,8 +380,8 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
                 if i_algorithm == 0:
                     plt.ylabel(dat_name, size=18)
                     
-            homo.append(homo1)
-            comp.append(comp1)
+#             homo.append(homo1)
+#             comp.append(comp1)
             vs.append(vs1)
 
             idata.append(i_dataset)
@@ -363,7 +391,7 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
     
     if save:
         plt.figure(1)
-        plt.savefig('scatter_'+title+'.png')
+        plt.savefig(images_dir+'scatter_'+title+'.png')
         plt.figure(2)
         plt.savefig('recon_'+title+'.png')
     
@@ -441,7 +469,7 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
                 .16 * np.floor(vs.argmax() / len(n_components_range))
             plt.text(xpos, vs.min() * 0.97 + .03 * vs.max(), '*', fontsize=14)
             spl.set_xlabel('Algorithm')
-            spl.set_ylabel('V-score')
+            spl.set_ylabel('V-Measure')
             #spl.legend([b[0] for b in bars], cv_types)  
             plt.tight_layout()
         
@@ -451,6 +479,8 @@ def plot_results(sc=0,sr=0,sv=1,sv2=0,srs=0,mode=[],w_positions=False,scale=Fals
         return vs
     if return_AIC:
         return aic
+    if return_weights:
+        return aic    
 
 def silhouette_analysis(dataset='glass',mode=[],scale=False,w_positions=False,plotting=True,include_1=False):
 
@@ -1024,9 +1054,9 @@ def colourblind2(i):
     idx = mod(i,len(hexcols))
     return hexcols[idx]
 
-def compare_3(bars_se,bars_de,bars_pc,title='all',leg=['Single Energy','Dual Energy','Spectral']):
-    cinds=[0,2,3,4,7,8,9,10]
-
+def compare_3(bars_se,bars_de,bars_pc,bars_none=None,title='all',leg=['Single Energy','Dual Energy','Spectral'],savefig=False,fname=None):
+    cinds=[0,2,3,4,7,8,9,10,11]
+    
     ms = []
     two_means = []
     ward =[]
@@ -1038,6 +1068,7 @@ def compare_3(bars_se,bars_de,bars_pc,title='all',leg=['Single Energy','Dual Ene
     gmm = []
     bgmm = []
     hdb = []
+    ibgmm = []
 
     cinds_all = (
         ('KMeans', two_means),
@@ -1050,7 +1081,8 @@ def compare_3(bars_se,bars_de,bars_pc,title='all',leg=['Single Energy','Dual Ene
         ('Birch', birch),
         ('HDBSCAN', hdb),
         ('GaussianMixture', gmm),
-        ('BGaussianMixture', bgmm)
+        ('BGaussianMixture', bgmm),
+        ('IBGMM', ibgmm)
     )
 
     clustering_algorithms = [cinds_all[j] for j in cinds]
@@ -1058,12 +1090,17 @@ def compare_3(bars_se,bars_de,bars_pc,title='all',leg=['Single Energy','Dual Ene
     bars_de2 = np.mean(np.asarray(bars_de),axis=0)
     bars_se2 = np.mean(np.asarray(bars_se),axis=0)
     bars_pc2 = np.mean(np.asarray(bars_pc),axis=0)
+    
+    if bars_none is not None:
+        bars_none2 = np.mean(np.asarray(bars_none),axis=0)
+
 
     indeces = np.argsort(bars_pc2)
 
     bars_se2 = bars_se2[indeces]
     bars_de2 = bars_de2[indeces]
-
+    if bars_none is not None:
+        bars_none2 = bars_none2[indeces]
     bars_pc2.sort()
 
     # vs = np.asarray(vs)
@@ -1094,13 +1131,20 @@ def compare_3(bars_se,bars_de,bars_pc,title='all',leg=['Single Energy','Dual Ene
     # #         import ipdb; ipdb.set_trace()
     # bars2.sort()
     # bars2 = np.concatenate(bars_se2,bars_de2,bars_pc2)
+    if bars_none is not None:
+        n = 4 + 1
+    else:
+        n = 3 + 1
 
     clustering_algorithms = [clustering_algorithms[i] for i in indeces]
-
-    plt.bar(range(0,len(bars_pc2)*3,3),bars_se2,color=colourblind(1))
-    plt.bar(range(1,len(bars_pc2)*3,3),bars_de2,color=colourblind(2))
-    plt.bar(range(2,len(bars_pc2)*3,3),bars_pc2,color=colourblind(3))
-    plt.xticks(range(1,len(bars_pc2)*3,3),[item[0] for item in clustering_algorithms],rotation = 45, ha="right")
+    plt.figure()
+    plt.bar(range(0,len(bars_pc2)*n,n),bars_se2,color=colourblind(1))
+    plt.bar(range(1,len(bars_pc2)*n,n),bars_de2,color=colourblind(2))
+    plt.bar(range(2,len(bars_pc2)*n,n),bars_pc2,color=colourblind(3))
+    if bars_none is not None:
+        plt.bar(range(3,len(bars_none2)*n,n),bars_none2,color=colourblind(4))
+        
+    plt.xticks(range(1,len(bars_pc2)*n,n),[item[0] for item in clustering_algorithms],rotation = 45, ha="right")
     plt.xticks()
     plt.ylim([0, 1])
     plt.title(title)
@@ -1108,11 +1152,12 @@ def compare_3(bars_se,bars_de,bars_pc,title='all',leg=['Single Energy','Dual Ene
     #     .16 * np.floor(vs.argmax() / len(n_components_range))
     # plt.text(xpos, vs.min() * 0.97 + .03 * vs.max(), '*', fontsize=14)
     plt.xlabel('Algorithm')
-    plt.ylabel('V-score')
+    plt.ylabel('V-measure')
     plt.legend(leg)  
     plt.tight_layout()
     
-    plt.savefig('{}.png'.format(title))
+    if savefig:
+        plt.savefig(fname,dpi=300)
     
 def compare_2(bars_se,bars_pc,title='all',leg=['Single Energy','Spectral'],algo=True):
     cinds=[0,2,3,4,7,8,9,10]
@@ -1142,7 +1187,7 @@ def compare_2(bars_se,bars_pc,title='all',leg=['Single Energy','Spectral'],algo=
         ('GaussianMixture', gmm),
         ('BGaussianMixture', bgmm)
     )
-
+    plt.figure()
     clustering_algorithms = [cinds_all[j] for j in cinds]
     
     if algo:
@@ -1212,7 +1257,104 @@ def compare_2(bars_se,bars_pc,title='all',leg=['Single Energy','Spectral'],algo=
     #     .16 * np.floor(vs.argmax() / len(n_components_range))
     # plt.text(xpos, vs.min() * 0.97 + .03 * vs.max(), '*', fontsize=14)
 
-    plt.legend(leg)  
+    plt.legend(leg,loc=1)  
     plt.tight_layout()
     
     plt.savefig('{}.png'.format(title))
+    
+# def compare_32(bars,title='all',leg=['Single Energy','Dual Energy','Spectral']):
+#     cinds=[0,2,3,4,7,8,9,10]
+    
+#     # Sorted by the first column
+
+#     ms = []
+#     two_means = []
+#     ward =[]
+#     spectral = []
+#     dbscan = []
+#     average_linkage = []
+#     affinity_propagation = []
+#     birch = []
+#     gmm = []
+#     bgmm = []
+#     hdb = []
+    
+#     bars = np.asarray(bars)
+    
+#     nc = bars.shape[0]
+#     nr = bars.shape[1]
+#     print(nc,nr)
+    
+#     cinds_all = (
+#         ('KMeans', two_means),
+#         ('AffinityPropagation', affinity_propagation),
+#         ('MeanShift', ms),
+#         ('SpectralClustering', spectral),
+#         ('Ward', ward),
+#         ('AgglomerativeClustering', average_linkage),
+#         ('DBSCAN', dbscan),
+#         ('Birch', birch),
+#         ('HDBSCAN', hdb),
+#         ('GaussianMixture', gmm),
+#         ('BGaussianMixture', bgmm)
+#     )
+
+#     clustering_algorithms = [cinds_all[j] for j in cinds]
+    
+#     for ii in range(0,nc):
+#         bars[ii,:] = np.mean(np.asarray(bars[ii,:]),axis=0)
+
+
+#     indeces = np.argsort(bars[0,:])
+    
+#     for ii in range(1,len(bars[:,1])):
+#         bars[ii,:] = bars[ii,indeces]
+
+#     bars[0,:].sort()
+
+#     # vs = np.asarray(vs)
+#     bars = []
+#     colors = []
+#     n_components_range = range(nr)
+#     # cv_types = [item[1] for item in datasets2]
+
+
+#     # color_iter = cycle(['navy', 'turquoise', 'cornflowerblue',
+#     #                               'darkorange','k'])
+#     # # Plot the BIC scores
+#     # plt.figure(figsize=(8, 6))
+#     # plt.rcParams['axes.facecolor'] = (1,1,1)            
+#     # spl = plt.subplot(1, 1, 1)
+
+#     # for i, (cv_type, pcolor) in enumerate(zip(cv_types, color_iter)):
+#     #     xpos = np.array(n_components_range) + 0.166 * (i - 2)
+#     #     bars.append( vs[i * len(n_components_range):
+#     #                                   (i + 1) * len(n_components_range)])
+
+#     # # import ipdb; ipdb.set_trace()
+#     [colors.append(colourblind(col)) for col in n_components_range]
+
+#     # bars2 = np.mean(np.asarray(bars),axis=0)
+
+#     # indeces = np.argsort(bars2)
+#     # #         import ipdb; ipdb.set_trace()
+#     # bars2.sort()
+#     # bars2 = np.concatenate(bars_se2,bars_de2,bars_pc2)
+
+#     clustering_algorithms = [clustering_algorithms[i] for i in indeces]
+#     for kk in range(0,nc):
+#         plt.bar(range(nr)*3,3),bars[ii,:],color=colourblind(ii))
+
+#     plt.xticks(range(1,nr*3,3),[item[0] for item in clustering_algorithms],rotation = 45, ha="right")
+#     plt.xticks()
+#     plt.ylim([0, 1])
+#     plt.title(title)
+#     # xpos = np.mod(vs.argmax(), len(n_components_range)) + .65 +\
+#     #     .16 * np.floor(vs.argmax() / len(n_components_range))
+#     # plt.text(xpos, vs.min() * 0.97 + .03 * vs.max(), '*', fontsize=14)
+#     plt.xlabel('Algorithm')
+#     plt.ylabel('V-score')
+#     plt.legend(leg)  
+#     plt.tight_layout()
+    
+#     plt.savefig('{}.png'.format(title))

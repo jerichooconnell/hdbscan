@@ -66,7 +66,7 @@ class I_gmm:
 #                    colors='black',alpha=0.3)
             ax.scatter(mean[0],mean[1],c='grey',zorder=10,s=100)        
         
-    def iterative_gmm(self,dataset = 'bb',fake = True,mode = 'gmm',binary = False,im_dir = './images/',savegif = False,title ='temp',bic_thresh = 0,maxiter = 40,nc =5,v_and_1 = False,thresh = 0.9,cov=[],n_components=2,covt='spherical',ra=False,pca = True):
+    def iterative_gmm(self,dataset = 'bb',fake = True,mode2 = 'gmm',mode=[],binary = False,im_dir = './images/',savegif = False,title ='temp',bic_thresh = 0,maxiter = 40,nc =5,v_and_1 = False,thresh = 0.9,cov=[],n_components=2,covt='spherical',ra=False,red = 'pca'):
 
         '''
         dataset: string
@@ -99,8 +99,51 @@ class I_gmm:
         itern = 0
         inds = [2,3,4]
         label_true = loadmat('2'+dataset+'_mask')['BW'] 
-        X1 = loadmat('all'+dataset)['Z'][:,inds]
-
+        
+        if mode == 'de':
+            X1 = loadmat('all'+dataset)['Z']
+            for jj in range(0,6):
+                r2 = np.reshape(X1[:,jj], (20,68), order="F")
+                X1[:,jj] = np.reshape(gaussian_filter1d(r2,sigma=1),20*68,order="F")            
+            X1 = np.column_stack((np.sum(X1[:,1:3],1),np.sum(X1[:,4:],1)))
+        elif mode == 'se':
+            X1 = loadmat('all'+dataset)['Z'][:,0]
+            r2 = np.reshape(X1, (20,68), order="F")
+            X1 = np.reshape(gaussian_filter1d(r2,sigma=1),20*68,order="F")            
+            X1 = np.reshape(X1, (20*68,1), order="F")
+        elif mode == 'all':
+            X1 = loadmat('all'+dataset)['Z']
+            for jj in range(0,6):
+                r2 = np.reshape(X1[:,jj], (20,68), order="F")
+                X1[:,jj] = np.reshape(gaussian_filter1d(r2,sigma=1),20*68,order="F")
+            if red == 'pca':
+                X1 = PCA(n_components=nc).fit_transform(X1)            
+        elif mode == 'small':
+            X1 = loadmat('small_'+dataset)['Z'] 
+        elif mode == 'gauss':
+            X1 = loadmat('all'+dataset)['Z']
+            for jj in range(0,6):
+                r2 = np.reshape(X1[:,jj], (20,68), order="F")
+                X1[:,jj] = np.reshape(gaussian_filter1d(r2,sigma=1),20*68,order="F")
+        else:
+            X1 = loadmat('all'+dataset)['Z'][:,inds]
+            if red == 'pca':
+                X1 = PCA(n_components=nc).fit_transform(X1)
+                
+        if red == 'ica':
+            X1 = FastICA(n_components=nc,whiten=True).fit_transform(X1)
+            covt = 'full'
+        if red == 'icapca':
+            X1 = FastICA(n_components=5).fit_transform(X1)
+            X1 = PCA(n_components=nc).fit_transform(X1)                
+        if red == 'tsne':
+            X1 = TSNE(n_components=nc).fit_transform(X1)
+        if red == 'nmf':
+            X1 = NMF(n_components=nc).fit_transform(X1)  
+            covt = 'full'
+        if red == 'spec':
+            X1 = SpectralEmbedding(n_components=3).fit_transform(X1)
+            
         if not fake:
             X1 = X1[400:,:].copy()
             label_true = label_true[400:].copy()
@@ -123,23 +166,24 @@ class I_gmm:
                 r2 = np.reshape(X1[:,jj], (20,length), order="F")
                 X1[:,jj] = np.reshape(gaussian_filter1d(r2,sigma=1),20*length,order="F")
         ct = 'full'
-        if mode == 'bgmm':
+        
+        if mode2 == 'bgmm':
             bgmm = mixture.BayesianGaussianMixture(
                     n_components=n_components, covariance_type=covt)
-        elif mode == 'kmeans':
+        elif mode2 == 'kmeans':
             km = KMeans(n_clusters=n_components)
         
         gmm = mixture.GaussianMixture(n_components=n_components,
                                       covariance_type=covt)
         gmm1 = mixture.GaussianMixture(n_components=n_components,
-                                  covariance_type='full')
+                                      covariance_type='full')
 
         ims = []
         
-        pca = True
+        
         # Do the PCA decomposition
-        if pca:
-            X1 = PCA(n_components=nc).fit_transform(X1)
+#         if red == 'pca':
+#             X1 = PCA(n_components=nc).fit_transform(X1)
         
         X3 = X1[:,0:2].copy()
         
@@ -149,12 +193,12 @@ class I_gmm:
 
             X = X1.copy()
 
-            if mode == 'gmm':
+            if mode2 == 'gmm':
                 y_pred = gmm.fit_predict(X)
-            elif mode == 'bgmm':
+            elif mode2 == 'bgmm':
                 y_pred = bgmm.fit_predict(X)
                 y_ff = gmm.fit(X)
-            elif mode == 'kmeans':
+            elif mode2 == 'kmeans':
                 y_pred = km.fit_predict(X)
                 y_ff = gmm.fit(X)
             
@@ -168,18 +212,21 @@ class I_gmm:
 
                 bic = gmm.aic(X)
                 bic1 = gmm1.aic(X)
-                print(vs1,itern,bic,bic1)
+                if savegif:
+                    print(vs1,itern,bic,bic1)
             else:
                 bic = gmm.aic(X)
-                print(bic)
+                if savegif:
+                    print(bic)
 
             # Stop if bic is lower
             if bic - bic0 < bic_thresh:
                 bic0 = bic
             else:
                 print('BIC got higher')
-                break                
-            print(bic)
+                break
+            if savegif:
+                print(bic)
             
             # map the bad values to zero
             for kk in range(n_components):
@@ -195,14 +242,14 @@ class I_gmm:
                     temp - robust_cov.location_) ** (0.33)
                 
                 if thresh < 1:
-                    temp[robust_mahal > robust_mahal.max()*thresh] = 0
+                    temp[robust_mahal > robust_mahal.min() + (robust_mahal.max()-robust_mahal.min()) *thresh] = 0
                 else:
 #                     import pdb; pdb.set_trace()
                     temp[robust_mahal > np.sort(robust_mahal)[-thresh]] = 0
                     
                 X[y_pred == kk,:] = temp
 
-            mask_one = X[:,1] == 0
+            mask_one = X[:,0] == 0
 
             if y_pred[3] == 0:
                 # Map top to zero if it is the wrong combo
@@ -215,72 +262,72 @@ class I_gmm:
                 y_0 = y_pred
             
             # Plotting functions
-
-            ax0 = fig.add_subplot(111)
-
-            a = -(y_pred - label_true.squeeze())
-            y_reshape = np.reshape(a, (20,length), order="F")
-            
-            colorz = ['b','r','g','m']
-            for jj,color in zip(range(a.min(),a.max()+1),colorz):
-                print(jj)
-                b = a == jj
-                b = [i for i, x in enumerate(b) if x]
-                if jj == 0:
-                    c = b
-                ax0.scatter(X1[b,0],X1[b,1],c=colorz[(jj-a.min())])
-
-            ax0.set_title('New Method')
-            self.plot_cov(gmm1.means_, gmm1.covariances_,ct='full')
-
-            if itern == 0:
-                axes = plt.gca()
-                ylim = axes.get_ylim()
-                xlim = axes.get_xlim() 
-
-            ax0.set_xlim(xlim)
-            ax0.set_ylim(ylim)
-            
-            ax0.scatter(X3[:,0],X3[:,1],c='k',alpha = 0.1)
-            plt.text(.5*xlim[-1], ylim[0] + .005,'bad pts = {}'.format(format(len(c),"03")))     
-            ax3 = plt.axes([.22, .15, .15, .1])
-            bics.append(bic)
-            plt.plot(bics)
-            plt.yticks([])
-            plt.xlabel('iteration')
-            plt.ylabel('BIC')
-            ax2 = plt.axes([.25, .55, .6, .4], facecolor='y')
-
-            if binary:
-                plt.imshow(y_reshape,cmap='brg')
-            else:
-                plt.imshow(np.reshape(X1[:,0], (20,length), order="F"))
-
-            plt.title('Image Space')
-            plt.xticks([])
-            plt.yticks([])
-
             if savegif:
-                plt.savefig(im_dir + '{}.png'.format(format(itern, "02")))
-                
-            itern += 1
-            
-            i, j = np.where(m_reshape == True)
+                ax0 = fig.add_subplot(111)
 
-#             if binary:
-#                 plt.imshow(y_reshape,cmap='brg')
-#             else:
-            plt.scatter(j,i,marker='x',c='k')
-            
-#             import pdb; pdb.set_trace()
-            d = [i for i, x in enumerate(mask_one) if x]
-            ax0.scatter(X1[d,0],X1[d,1],marker='x',c='k')
-   
-                
-            if savegif:
-                plt.savefig(im_dir + '{}.png'.format(format(itern, "02")))
-            
-            itern += 1
+                a = -(y_pred - label_true.squeeze())
+                y_reshape = np.reshape(a, (20,length), order="F")
+
+                colorz = ['b','r','g','m']
+                for jj,color in zip(range(a.min(),a.max()+1),colorz):
+                    print(jj)
+                    b = a == jj
+                    b = [i for i, x in enumerate(b) if x]
+                    if jj == 0:
+                        c = b
+                    ax0.scatter(X1[b,0],X1[b,1],c=colorz[(jj-a.min())])
+
+                ax0.set_title('New Method')
+                self.plot_cov(gmm1.means_, gmm1.covariances_,ct='full')
+
+                if itern == 0:
+                    axes = plt.gca()
+                    ylim = axes.get_ylim()
+                    xlim = axes.get_xlim() 
+
+                ax0.set_xlim(xlim)
+                ax0.set_ylim(ylim)
+
+                ax0.scatter(X3[:,0],X3[:,1],c='k',alpha = 0.1)
+                plt.text(.5*xlim[-1], ylim[0] + .005,'bad pts = {}'.format(format(len(c),"03")))     
+                ax3 = plt.axes([.22, .15, .15, .1])
+                bics.append(bic)
+                plt.plot(bics)
+                plt.yticks([])
+                plt.xlabel('iteration')
+                plt.ylabel('BIC')
+                ax2 = plt.axes([.25, .55, .6, .4], facecolor='y')
+
+                if binary:
+                    plt.imshow(y_reshape,cmap='brg')
+                else:
+                    plt.imshow(np.reshape(X1[:,0], (20,length), order="F"))
+
+                plt.title('Image Space')
+                plt.xticks([])
+                plt.yticks([])
+
+                if savegif:
+                    plt.savefig(im_dir + '{}.png'.format(format(itern, "02")))
+
+                itern += 1
+
+                i, j = np.where(m_reshape == True)
+
+    #             if binary:
+    #                 plt.imshow(y_reshape,cmap='brg')
+    #             else:
+                plt.scatter(j,i,marker='x',c='k')
+
+    #             import pdb; pdb.set_trace()
+                d = [i for i, x in enumerate(mask_one) if x]
+                ax0.scatter(X1[d,0],X1[d,1],marker='x',c='k')
+
+
+                if savegif:
+                    plt.savefig(im_dir + '{}.png'.format(format(itern, "02")))
+
+                itern += 1
             
             X2 = X1.copy()
             # Inpainting the zeros
@@ -289,19 +336,18 @@ class I_gmm:
                 r2,m_reshape,multichannel=True),
                             (20*length,X1.shape[1]),order="F")
             
-            ax0.plot([X2[d,0],X1[d,0]],[X2[d,1],X1[d,1]],'r')
-            
-            if ra:
-                arrowsU.append([X2[d,0],X1[d,0]])
-                arrowsV.append([X2[d,1],X1[d,1]])
-            
-            
-            if binary:
-                plt.imshow(y_reshape,cmap='brg')
-            else:
-                plt.imshow(np.reshape(X1[:,0], (20,length), order="F"))
-            
             if savegif:
+                ax0.plot([X2[d,0],X1[d,0]],[X2[d,1],X1[d,1]],'r')
+
+                if ra:
+                    arrowsU.append([X2[d,0],X1[d,0]])
+                    arrowsV.append([X2[d,1],X1[d,1]])
+
+
+                if binary:
+                    plt.imshow(y_reshape,cmap='brg')
+                else:
+                    plt.imshow(np.reshape(X1[:,0], (20,length), order="F"))
                 plt.savefig(im_dir + '{}.png'.format(format(itern, "02")))
                 plt.clf()
             
@@ -323,50 +369,53 @@ class I_gmm:
         #     plt.savefig('./images3/{}.png'.format(format(itern, "02")))  
             itern += 1
 
-        fig = plt.figure(figsize=(10,10))
-        ax0 = fig.add_subplot(111)  
+        if savegif:
+            fig = plt.figure(figsize=(10,10))
+            ax0 = fig.add_subplot(111)  
 
-        colorz = ['b','r','g','m']
-        for jj,color in zip(range(a.min(),a.max()+1),colorz):
-            print(jj)
-            b = a == jj
-            b = [i for i, x in enumerate(b) if x]
-            if jj == 0:
-                c = b
-            ax0.scatter(X1[b,0],X1[b,1],c=colorz[(jj-a.min())])
-            
-        self.plot_cov(gmm1.means_, gmm1.covariances_,ct)
-        ax0.scatter(X3[:,0],X3[:,1],c='k',alpha = 0.1)
+            colorz = ['b','r','g','m']
+            for jj,color in zip(range(a.min(),a.max()+1),colorz):
+                print(jj)
+                b = a == jj
+                b = [i for i, x in enumerate(b) if x]
+                if jj == 0:
+                    c = b
+                ax0.scatter(X1[b,0],X1[b,1],c=colorz[(jj-a.min())])
 
-        ax0.set_title('New Method')
-        ax0.set_xlim(xlim)
-        ax0.set_ylim(ylim)
-        plt.text(.5*xlim[-1], ylim[0] + .005,'bad pts = {}'.format(format(len(c),"03")))      
-        
-        r = np.reshape(y_pred, (20,length), order="F")
-        if binary:
-            self.animate(y_reshape)
+            self.plot_cov(gmm1.means_, gmm1.covariances_,ct)
+            ax0.scatter(X3[:,0],X3[:,1],c='k',alpha = 0.1)
+
+            ax0.set_title('New Method')
+            ax0.set_xlim(xlim)
+            ax0.set_ylim(ylim)
+            plt.text(.5*xlim[-1], ylim[0] + .005,'bad pts = {}'.format(format(len(c),"03")))      
+
+            r = np.reshape(y_pred, (20,length), order="F")
+            if binary:
+                self.animate(y_reshape)
+            else:
+                self.animate(y_reshape, im=np.reshape(X1[:,0], (20,length), order="F"))
+            ax3 = plt.axes([.22, .15, .15, .1])
+            bics.append(bic)
+            plt.plot(bics)
+            plt.yticks([])
+            plt.xlabel('iteration')
+            plt.ylabel('BIC')
+            plt.savefig(im_dir + '{}.png'.format(format(itern, "02")))
+
+
+            plt.figure()
+            plt.imshow(r)
+            plt.xticks([])
+            plt.yticks([])  
+            plt.figure()
+
+            r0 = np.reshape(y_0, (20,length), order="F")
+            plt.imshow(r - r0)
+            plt.xticks([])
+            plt.yticks([]) 
         else:
-            self.animate(y_reshape, im=np.reshape(X1[:,0], (20,length), order="F"))
-        ax3 = plt.axes([.22, .15, .15, .1])
-        bics.append(bic)
-        plt.plot(bics)
-        plt.yticks([])
-        plt.xlabel('iteration')
-        plt.ylabel('BIC')
-        plt.savefig(im_dir + '{}.png'.format(format(itern, "02")))
-
-
-        plt.figure()
-        plt.imshow(r)
-        plt.xticks([])
-        plt.yticks([])  
-        plt.figure()
-
-        r0 = np.reshape(y_0, (20,length), order="F")
-        plt.imshow(r - r0)
-        plt.xticks([])
-        plt.yticks([])  
+            return vs1
 
         if savegif:
             # save gif
