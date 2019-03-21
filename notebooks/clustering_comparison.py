@@ -1054,7 +1054,7 @@ def colourblind2(i):
     idx = mod(i,len(hexcols))
     return hexcols[idx]
 
-def compare_3(bars_se,bars_de,bars_pc,bars_none=None,title='all',leg=['Single Energy','Dual Energy','Spectral'],savefig=False,fname=None):
+def compare_3(bars_se,bars_de,bars_pc,bars_none=None,title='all',leg=['SE','DE','Spectral'],savefig=False,fname=None):
     cinds=[0,2,3,4,7,8,9,10,11]
     
     ms = []
@@ -1074,14 +1074,14 @@ def compare_3(bars_se,bars_de,bars_pc,bars_none=None,title='all',leg=['Single En
         ('KMeans', two_means),
         ('AffinityPropagation', affinity_propagation),
         ('MeanShift', ms),
-        ('SpectralClustering', spectral),
+        ('SC', spectral),
         ('Ward', ward),
         ('AgglomerativeClustering', average_linkage),
         ('DBSCAN', dbscan),
         ('Birch', birch),
         ('HDBSCAN', hdb),
-        ('GaussianMixture', gmm),
-        ('BGaussianMixture', bgmm),
+        ('GMM', gmm),
+        ('BGMM', bgmm),
         ('IBGMM', ibgmm)
     )
 
@@ -1135,7 +1135,13 @@ def compare_3(bars_se,bars_de,bars_pc,bars_none=None,title='all',leg=['Single En
         n = 4 + 1
     else:
         n = 3 + 1
-
+    
+    print(leg[0],bars_se2)
+    print(leg[1],bars_de2)
+    print(leg[2],bars_pc2)
+    if bars_none is not None:
+        print(leg[3],bars_none2)
+   
     clustering_algorithms = [clustering_algorithms[i] for i in indeces]
     plt.figure()
     plt.bar(range(0,len(bars_pc2)*n,n),bars_se2,color=colourblind(1))
@@ -1178,14 +1184,14 @@ def compare_2(bars_se,bars_pc,title='all',leg=['Single Energy','Spectral'],algo=
         ('KMeans', two_means),
         ('AffinityPropagation', affinity_propagation),
         ('MeanShift', ms),
-        ('SpectralClustering', spectral),
+        ('SC', spectral),
         ('Ward', ward),
         ('AgglomerativeClustering', average_linkage),
         ('DBSCAN', dbscan),
         ('Birch', birch),
         ('HDBSCAN', hdb),
-        ('GaussianMixture', gmm),
-        ('BGaussianMixture', bgmm)
+        ('GMM', gmm),
+        ('BGMM', bgmm)
     )
     plt.figure()
     clustering_algorithms = [cinds_all[j] for j in cinds]
